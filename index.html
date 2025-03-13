@@ -1,19 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Trivo's 3D Portfolio</title>
-  <link rel="stylesheet" href="/src/style.scss" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Portfolio</title>
+    <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <div class="loading-screen">
-    <button class="loading-screen-button">Loading...</button>
-  </div>
-  <div id="experience">
-    <canvas id="experience-canvas"></canvas>
-  </div>
-  <div class="modal" id="tavern-modal">Welcome to Trivo's Tavern!</div>
-  <script type="module" src="/src/main.js"></script>
+    <div class="modal work" id="modal-work">Here are the things that I made</div>
+    <div class="modal about" id="modal-about">Konichiwa, my name is Tri and I love doing creative things</div>
+    <div class="modal contact" id="modal-contact">You can contact me through these links</div>
+
+    <div id="experience">
+        <canvas id="experience-canvas"></canvas>
+    </div>
+    <script type="importmap">
+        {
+          "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@v0.149.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@v0.149.0/examples/jsm/"
+          }
+        }
+    </script>
+    <script type="module" src="./main.js"></script>
 </body>
 </html>
