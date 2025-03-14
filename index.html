@@ -5,15 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Portfolio</title>
     <link rel="stylesheet" href="./style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 </head>
 <body>
-    <div class="modal work" id="modal-work">Here are the things that I made</div>
-    <div class="modal about" id="modal-about">Konichiwa, my name is Tri and I love doing creative things</div>
-    <div class="modal contact" id="modal-contact">You can contact me through these links</div>
-
+    <!-- Landing Page (3D Canvas) -->
     <div id="experience">
         <canvas id="experience-canvas"></canvas>
+        <div class="modal work" id="modal-work">Here are the things that I made</div>
+        <div class="modal about" id="modal-about">Konichiwa, my name is Tri and I love doing creative things</div>
+        <div class="modal contact" id="modal-contact">You can contact me through these links</div>
     </div>
+
+    <!-- Projects Page -->
+    
+    <section id="projects-page" class="page">
+      <div class="project-header">
+          <h1>Projects</h1>
+          <p>Here’s some of the animations I’ve made. Check them out!</p>
+      </div>
+      <div class="project-list">
+          <iframe width="560" height="315" src="https://www.youtube.com/embed/22NTSj3yMgc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          <iframe width="560" height="315" src="https://www.youtube.com/embed/i8TJAKnyy7w" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          <iframe width="560" height="315" src="https://www.youtube.com/embed/LaEhIA6vprw" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          <iframe width="560" height="315" src="https://www.youtube.com/embed/-HN4EBvRV3g" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          <iframe width="560" height="315" src="https://www.youtube.com/embed/Wg7hCVhKBAw" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          <iframe width="560" height="315" src="https://www.youtube.com/embed/_QlIdAuV-po" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          <iframe width="560" height="315" src="https://www.youtube.com/embed/GyWp6Xx-djE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+      </div>
+      <button class="back-btn">Back to Landing</button>
+  </section>
+    <!-- About Page -->
+    <section id="about-page" class="page">
+      <h1>About Me</h1>
+      <p>Hey, I’m Tri. I make things. Creative, fun stuff. I do 3D—modeling, texturing, rigging, animation. I use Blender, Maya, Unreal Engine 5. Right now, I’m mixing 3D with web design. This site’s my experiment. I love the flow state. Turning ideas into reality is my thing. No plan, just creating. Check my projects. Hit me up if you’re into it!</p>
+      <button class="back-btn">Back to Landing</button>
+    </section>
+
+    <!-- Contacts Page -->
+    <section id="contacts-page" class="page">
+        <h1>Contact Me</h1>
+        <p>Reach out via <a href="#">email</a> or <a href="#">social media</a>.</p>
+        <button class="back-btn">Back to Landing</button>
+    </section>
+
     <script type="importmap">
         {
           "imports": {
@@ -23,5 +57,6 @@
         }
     </script>
     <script type="module" src="./main.js"></script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9204fae21d65bce3',t:'MTc0MTk2Nzk4NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>

@@ -5,46 +5,6 @@ body {
     overflow: hidden;
 }
 
-.section {
-    display: none;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100vh;
-    padding: 20px;
-    box-sizing: border-box;
-}
-
-.section.active {
-    display: block;
-}
-
-#loading {
-    text-align: center;
-    color: #333;
-    background-color: #fff;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-#loading h1 {
-    font-size: 2.5em;
-    margin: 0;
-}
-
-#loading p {
-    font-size: 1.2em;
-    margin: 10px 0 0;
-}
-
-#canvas-container {
-    width: 100%;
-    height: 100%;
-}
-
 #experience {
     position: fixed;
     height: 100%;
@@ -71,4 +31,79 @@ body {
     padding: 20px;
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+/* New Pages */
+.page {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: #fff;
+    padding: 20px;
+    box-sizing: border-box;
+    z-index: 1000;
+    opacity: 0;
+}
+
+.page.active {
+    display: block;
+}
+
+.page h1 {
+    font-size: 2.5em;
+    margin: 20px 0;
+    color: #333;
+}
+
+.page p {
+    font-size: 1.2em;
+    color: #666;
+}
+
+.page a {
+    color: #007BFF;
+    text-decoration: none;
+}
+
+.page a:hover {
+    text-decoration: underline;
+}
+
+.back-btn {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 1em;
+    background: #007BFF;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.back-btn:hover {
+    background: #0056b3;
+}
+
+.project-header {
+    position: absolute;
+    top: 500px;
+    left: 0;
+    width: 30%;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.project-list {
+    width: 70vw;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* Move items to the right */
+    gap: 10px;
+    padding: 0px;
+    box-sizing: border-box;
 }
