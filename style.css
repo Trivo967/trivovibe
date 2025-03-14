@@ -5,6 +5,35 @@ body {
     overflow: hidden;
 }
 
+/* Loading Screen */
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #1a1a2e;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    color: white;
+}
+
+.loading-container {
+    position: relative;
+    width: 200px;
+    height: 200px;
+}
+
+.loading-text {
+    margin-top: 20px;
+    font-size: 18px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
 #experience {
     position: fixed;
     height: 100%;
@@ -41,11 +70,12 @@ body {
     left: 0;
     width: 100%;
     height: 100vh;
-    background: #fff;
+    background: #0f0f1a;
     padding: 20px;
     box-sizing: border-box;
     z-index: 1000;
     opacity: 0;
+    color: white;
 }
 
 .page.active {
@@ -55,55 +85,137 @@ body {
 .page h1 {
     font-size: 2.5em;
     margin: 20px 0;
-    color: #333;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(76, 201, 240, 0.6);
 }
 
 .page p {
     font-size: 1.2em;
-    color: #666;
+    color: #ccc;
 }
 
 .page a {
-    color: #007BFF;
+    color: #4cc9f0;
     text-decoration: none;
 }
 
 .page a:hover {
     text-decoration: underline;
+    color: #f72585;
 }
 
 .back-btn {
-    margin-top: 20px;
+    position: absolute;
+    bottom: 30px;
+    left: 30px;
     padding: 10px 20px;
     font-size: 1em;
-    background: #007BFF;
+    background: #4cc9f0;
     color: #fff;
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
 }
 
 .back-btn:hover {
-    background: #0056b3;
+    background: #f72585;
+    transform: scale(1.05);
 }
 
 .project-header {
     position: absolute;
-    top: 500px;
-    left: 0;
-    width: 30%;
-    padding: 20px;
+    top: 20px;
+    left: 30px;
+    width: 50%;
+    padding: 20px 0;
     box-sizing: border-box;
+    z-index: 5;
 }
 
-.project-list {
-    width: 70vw;
-    height: 100vh;
-    overflow-y: auto;
+/* 3D Projects Gallery */
+#projects-3d-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+#video-player-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+#video-player {
+    width: 80%;
+    height: 80%;
+    max-width: 1200px;
+}
+
+#video-player-close {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    font-size: 40px;
+    color: white;
+    cursor: pointer;
+    z-index: 2001;
+}
+
+#video-player-close:hover {
+    color: #f72585;
+}
+
+.gallery-controls {
+    position: absolute;
+    bottom: 30px;
+    right: 30px;
     display: flex;
-    flex-direction: column;
-    align-items: flex-end; /* Move items to the right */
-    gap: 10px;
-    padding: 0px;
-    box-sizing: border-box;
+    gap: 20px;
+    z-index: 10;
+}
+
+.gallery-control-btn {
+    padding: 10px 20px;
+    background: rgba(76, 201, 240, 0.3);
+    color: white;
+    border: 1px solid #4cc9f0;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.gallery-control-btn:hover {
+    background: rgba(247, 37, 133, 0.3);
+    border-color: #f72585;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .project-header {
+        width: 100%;
+        position: relative;
+        padding: 10px;
+    }
+    
+    #video-player {
+        width: 95%;
+        height: 50%;
+    }
+    
+    .gallery-controls {
+        bottom: 80px;
+        right: 20px;
+    }
 }

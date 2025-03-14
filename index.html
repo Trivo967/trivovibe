@@ -8,6 +8,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 </head>
 <body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loading-screen">
+        <div class="loading-container" id="monkey-container">
+            <!-- 3D monkey will be rendered here -->
+        </div>
+        <div class="loading-text">Loading...</div>
+    </div>
+
     <!-- Landing Page (3D Canvas) -->
     <div id="experience">
         <canvas id="experience-canvas"></canvas>
@@ -17,27 +25,47 @@
     </div>
 
     <!-- Projects Page -->
-    
     <section id="projects-page" class="page">
-      <div class="project-header">
-          <h1>Projects</h1>
-          <p>Here’s some of the animations I’ve made. Check them out!</p>
-      </div>
-      <div class="project-list">
-          <iframe width="560" height="315" src="https://www.youtube.com/embed/22NTSj3yMgc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-          <iframe width="560" height="315" src="https://www.youtube.com/embed/i8TJAKnyy7w" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-          <iframe width="560" height="315" src="https://www.youtube.com/embed/LaEhIA6vprw" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-          <iframe width="560" height="315" src="https://www.youtube.com/embed/-HN4EBvRV3g" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-          <iframe width="560" height="315" src="https://www.youtube.com/embed/Wg7hCVhKBAw" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-          <iframe width="560" height="315" src="https://www.youtube.com/embed/_QlIdAuV-po" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-          <iframe width="560" height="315" src="https://www.youtube.com/embed/GyWp6Xx-djE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-      </div>
-      <button class="back-btn">Back to Landing</button>
-  </section>
+        <div class="project-header">
+            <h1>Projects</h1>
+            <p>Here's some of the animations I've made. Check them out!</p>
+        </div>
+        
+        <!-- 3D Video Gallery -->
+        <div id="projects-3d-container">
+            <!-- 3D video gallery will be rendered here -->
+        </div>
+        
+        <!-- Video Data (hidden) -->
+        <div id="video-data" style="display: none;">
+            <div class="video-item" data-id="22NTSj3yMgc" data-title="Animation 1"></div>
+            <div class="video-item" data-id="i8TJAKnyy7w" data-title="Animation 2"></div>
+            <div class="video-item" data-id="LaEhIA6vprw" data-title="Animation 3"></div>
+            <div class="video-item" data-id="-HN4EBvRV3g" data-title="Animation 4"></div>
+            <div class="video-item" data-id="Wg7hCVhKBAw" data-title="Animation 5"></div>
+            <div class="video-item" data-id="_QlIdAuV-po" data-title="Animation 6"></div>
+            <div class="video-item" data-id="GyWp6Xx-djE" data-title="Animation 7"></div>
+        </div>
+        
+        <!-- Video Player -->
+        <div id="video-player-container">
+            <div id="video-player-close">×</div>
+            <div id="video-player"></div>
+        </div>
+        
+        <!-- Navigation Controls -->
+        <div class="gallery-controls">
+            <button id="prev-video" class="gallery-control-btn">Previous</button>
+            <button id="next-video" class="gallery-control-btn">Next</button>
+        </div>
+        
+        <button class="back-btn">Back to Landing</button>
+    </section>
+    
     <!-- About Page -->
     <section id="about-page" class="page">
       <h1>About Me</h1>
-      <p>Hey, I’m Tri. I make things. Creative, fun stuff. I do 3D—modeling, texturing, rigging, animation. I use Blender, Maya, Unreal Engine 5. Right now, I’m mixing 3D with web design. This site’s my experiment. I love the flow state. Turning ideas into reality is my thing. No plan, just creating. Check my projects. Hit me up if you’re into it!</p>
+      <p>Hey, I'm Tri. I make things. Creative, fun stuff. I do 3D—modeling, texturing, rigging, animation. I use Blender, Maya, Unreal Engine 5. Right now, I'm mixing 3D with web design. This site's my experiment. I love the flow state. Turning ideas into reality is my thing. No plan, just creating. Check my projects. Hit me up if you're into it!</p>
       <button class="back-btn">Back to Landing</button>
     </section>
 
