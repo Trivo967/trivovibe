@@ -3,51 +3,63 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+// Ensure GSAP is available globally from the HTML script tag
+const gsap = window.gsap;
+
 // Music Controls
-const audio = document.getElementById('background-music');
-const musicToggle = document.getElementById('music-toggle');
-let isMusicPlaying = false; // Start as false since autoplay is blocked
+const audio = document.getElementById('background-music') || console.error('Audio element not found');
+const musicToggle = document.getElementById('music-toggle') || console.error('Music toggle not found');
+let isMusicPlaying = false;
 
-audio.volume = 0.5; // Set initial volume (0 to 1)
+if (audio) {
+    audio.volume = 0.5;
+    audio.play().catch(error => {
+        console.log('Autoplay prevented:', error);
+        if (musicToggle) {
+            musicToggle.textContent = '🔇';
+            musicToggle.classList.add('off');
+        }
+    });
+}
 
-// Try to play on load, but expect it to fail due to browser policy
-audio.play().catch(error => {
-    console.log('Autoplay prevented:', error);
-    musicToggle.textContent = '🔇';
-    musicToggle.classList.add('off');
-});
-
-// Start music on first user interaction (e.g., click anywhere)
 document.body.addEventListener('click', () => {
-    if (!isMusicPlaying) {
+    if (!isMusicPlaying && audio) {
         audio.play().then(() => {
-            musicToggle.textContent = '🔊';
-            musicToggle.classList.remove('off');
+            if (musicToggle) {
+                musicToggle.textContent = '🔊';
+                musicToggle.classList.remove('off');
+            }
             isMusicPlaying = true;
         }).catch(error => console.log('Music play failed:', error));
     }
-}, { once: true }); // Only trigger once
+}, { once: true });
 
-musicToggle.addEventListener('click', (event) => {
-    event.stopPropagation(); // Prevent triggering the body click listener
-    if (isMusicPlaying) {
-        audio.pause();
-        musicToggle.textContent = '🔇';
-        musicToggle.classList.add('off');
-    } else {
-        audio.play();
-        musicToggle.textContent = '🔊';
-        musicToggle.classList.remove('off');
-    }
-    isMusicPlaying = !isMusicPlaying;
-});
+if (musicToggle) {
+    musicToggle.addEventListener('click', (event) => {
+        event.stopPropagation();
+        if (isMusicPlaying && audio) {
+            audio.pause();
+            musicToggle.textContent = '🔇';
+            musicToggle.classList.add('off');
+        } else if (audio) {
+            audio.play();
+            musicToggle.textContent = '🔊';
+            musicToggle.classList.remove('off');
+        }
+        isMusicPlaying = !isMusicPlaying;
+    });
+}
 
 // Loading screen elements
 const loadingScreen = document.getElementById('loading-screen');
 const monkeyContainer = document.getElementById('monkey-container');
 
-// Create loading screen with 3D monkey
 function initLoadingScreen() {
+    if (!monkeyContainer || !loadingScreen) {
+        console.error('Loading screen elements not found');
+        return;
+    }
+
     const loadingScene = new THREE.Scene();
     const loadingCamera = new THREE.PerspectiveCamera(75, 200 / 200, 0.1, 1000);
     loadingCamera.position.z = 5;
@@ -165,7 +177,7 @@ initLoadingScreen();
 
 // Main scene setup
 const scene = new THREE.Scene();
-const canvas = document.getElementById("experience-canvas");
+const canvas = document.getElementById("experience-canvas") || console.error('Canvas not found');
 const sizes = {
     width: window.innerWidth,
     height: window.innerHeight
@@ -224,6 +236,7 @@ loader.load(
     },
     (error) => {
         console.error('Error loading test11.glb:', error);
+        // Optional: Add fallback or user notification
     }
 );
 
@@ -307,6 +320,12 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
+// Declare video/photo gallery variables upfront
+let videoGalleryActive = false;
+let videoGalleryScene = null;
+let videoGalleryCamera = null;
+let photoGalleryCamera = null;
+
 // Animation loop
 function animate() {
     const elapsedTime = clock.getElapsedTime();
@@ -351,11 +370,20 @@ function handleResize() {
         videoGalleryCamera.updateProjectionMatrix();
         videoGalleryRenderer.setSize(sizes.width, sizes.height);
     }
+    if (photoGalleryCamera) {
+        photoGalleryCamera.aspect = sizes.width / sizes.height;
+        photoGalleryCamera.updateProjectionMatrix();
+        photoGalleryRenderer.setSize(sizes.width, sizes.height);
+    }
 }
 window.addEventListener('resize', handleResize);
 
 // Hover event
 window.addEventListener('mousemove', onMouseMove);
+
+let photoGalleryRaycaster = new THREE.Raycaster();
+let photoGalleryPointer = new THREE.Vector2();
+let hoveredPhoto = null;
 
 function onMouseMove(event) {
     pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -390,17 +418,47 @@ function onMouseMove(event) {
     if (videoGalleryActive) {
         handleVideoGalleryHover(event);
     }
+    
+    if (pages.about && pages.about.style.display === 'block') {
+        handleAboutGalleryHover(event);
+    }
+}
+
+function handleAboutGalleryHover(event) {
+    photoGalleryPointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+    photoGalleryPointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    
+    photoGalleryRaycaster.setFromCamera(photoGalleryPointer, photoGalleryCamera);
+    const intersects = photoGalleryRaycaster.intersectObjects(photoObjects, true);
+    
+    if (hoveredPhoto && (!intersects.length || intersects[0].object.parent !== hoveredPhoto)) {
+        gsap.to(hoveredPhoto.scale, { x: 1, y: 1, z: 1, duration: 0.3 });
+        hoveredPhoto = null;
+        document.body.style.cursor = 'default';
+    }
+    
+    if (intersects.length > 0) {
+        const newHovered = intersects[0].object.parent;
+        if (newHovered !== hoveredPhoto && !newHovered.userData.expanded) {
+            hoveredPhoto = newHovered;
+            gsap.to(hoveredPhoto.scale, { x: 1.1, y: 1.1, z: 1.1, duration: 0.3 });
+            document.body.style.cursor = 'pointer';
+        }
+    }
 }
 
 // Click event with GSAP transition
-window.addEventListener('click', onClick);
-
-function onClick(event) {
+window.addEventListener('click', (event) => {
     if (videoGalleryActive) {
         handleVideoGalleryClick(event);
-        return;
+    } else if (pages.about && pages.about.style.display === 'block') {
+        handleAboutGalleryClick(event);
+    } else {
+        onClick(event);
     }
-    
+});
+
+function onClick(event) {
     pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
     pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
@@ -410,9 +468,9 @@ function onClick(event) {
     if (intersects.length > 0) {
         const clickedObject = intersects[0].object;
 
-        modal.work.style.display = 'none';
-        modal.about.style.display = 'none';
-        modal.contact.style.display = 'none';
+        if (modal.work) modal.work.style.display = 'none';
+        if (modal.about) modal.about.style.display = 'none';
+        if (modal.contact) modal.contact.style.display = 'none';
 
         let targetPage;
         switch (clickedObject.name) {
@@ -422,6 +480,7 @@ function onClick(event) {
                 break;
             case 'about':
                 targetPage = pages.about;
+                initAboutGallery();
                 break;
             case 'contacts':
                 targetPage = pages.contacts;
@@ -431,19 +490,21 @@ function onClick(event) {
                 return;
         }
 
-        gsap.to(pages.landing, {
-            opacity: 0,
-            duration: 0.5,
-            ease: 'power2.out',
-            onComplete: () => {
-                pages.landing.style.display = 'none';
-                targetPage.style.display = 'block';
-                gsap.fromTo(targetPage, 
-                    { opacity: 0, y: 50 }, 
-                    { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }
-                );
-            }
-        });
+        if (pages.landing && targetPage) {
+            gsap.to(pages.landing, {
+                opacity: 0,
+                duration: 0.5,
+                ease: 'power2.out',
+                onComplete: () => {
+                    pages.landing.style.display = 'none';
+                    targetPage.style.display = 'block';
+                    gsap.fromTo(targetPage, 
+                        { opacity: 0, y: 50 }, 
+                        { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }
+                    );
+                }
+            });
+        }
     }
 }
 
@@ -452,33 +513,38 @@ document.querySelectorAll('.back-btn').forEach(button => {
     button.addEventListener('click', () => {
         const currentPage = button.closest('.page');
         
-        if (currentPage.id === 'projects-page') {
-            cleanupVideoGallery();
-        }
-        
-        gsap.to(currentPage, {
-            opacity: 0,
-            y: 50,
-            duration: 0.5,
-            ease: 'power2.out',
-            onComplete: () => {
-                currentPage.style.display = 'none';
-                pages.landing.style.display = 'block';
-                gsap.fromTo(pages.landing, 
-                    { opacity: 0 }, 
-                    { opacity: 1, duration: 0.5, ease: 'power2.out' }
-                );
+        if (currentPage) {
+            if (currentPage.id === 'projects-page') {
+                cleanupVideoGallery();
+            } else if (currentPage.id === 'about-page') {
+                cleanupAboutGallery();
             }
-        });
+            
+            gsap.to(currentPage, {
+                opacity: 0,
+                y: 50,
+                duration: 0.5,
+                ease: 'power2.out',
+                onComplete: () => {
+                    currentPage.style.display = 'none';
+                    if (pages.landing) {
+                        pages.landing.style.display = 'block';
+                        gsap.fromTo(pages.landing, 
+                            { opacity: 0 }, 
+                            { opacity: 1, duration: 0.5, ease: 'power2.out' }
+                        );
+                    }
+                }
+            });
+        }
     });
 });
 
 // ===== 3D Video Gallery Implementation =====
-let videoGalleryScene, videoGalleryCamera, videoGalleryRenderer, videoGalleryControls;
+let videoGalleryRenderer, videoGalleryControls;
 let videoObjects = [];
 let videoCubes = [];
 let currentVideoIndex = 0;
-let videoGalleryActive = false;
 let videoGalleryRaycaster = new THREE.Raycaster();
 let videoGalleryPointer = new THREE.Vector2();
 let hoveredVideo = null;
@@ -499,6 +565,11 @@ function initVideoGallery() {
     videoGalleryActive = true;
     
     const container = document.getElementById('projects-3d-container');
+    if (!container) {
+        console.error('Projects 3D container not found');
+        return;
+    }
+    
     videoGalleryScene = new THREE.Scene();
     videoGalleryCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     videoGalleryCamera.position.set(0, 0, 15);
@@ -531,11 +602,11 @@ function initVideoGallery() {
     videoGalleryControls.maxDistance = 25;
     videoGalleryControls.minDistance = 8;
     
-    document.getElementById('prev-video').addEventListener('click', showPreviousVideo);
-    document.getElementById('next-video').addEventListener('click', showNextVideo);
-    document.getElementById('video-player-close').addEventListener('click', closeVideoPlayer);
+    const closeBtn = document.getElementById('video-player-close');
+    if (closeBtn) closeBtn.addEventListener('click', closeVideoPlayer);
     
     animateVideoGallery();
+    animateProjectPage();
 }
 
 function createVideoThumbnails() {
@@ -574,6 +645,30 @@ function createVideoThumbnails() {
     });
     
     highlightCurrentVideo();
+}
+
+function animateProjectPage() {
+    const header = document.querySelector('.project-header');
+    const cubes = videoObjects;
+
+    if (header) {
+        gsap.fromTo(header, 
+            { opacity: 0, y: -50 },
+            { opacity: 1, y: 0, duration: 1, ease: 'power2.out' }
+        );
+    }
+
+    cubes.forEach((cube, index) => {
+        gsap.fromTo(cube.position,
+            { y: -20 },
+            { 
+                y: cube.position.y,
+                duration: 1.5,
+                delay: 0.5 + (index * 0.1),
+                ease: 'bounce.out'
+            }
+        );
+    });
 }
 
 function updateVideoGallery() {
@@ -677,53 +772,28 @@ function playVideo(videoId) {
     const playerContainer = document.getElementById('video-player-container');
     const player = document.getElementById('video-player');
     
-    player.innerHTML = `
-        <iframe width="100%" height="100%" 
-            src="https://www.youtube.com/embed/${videoId}?autoplay=1" 
-            title="YouTube video player" 
-            frameborder="0" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-            allowfullscreen>
-        </iframe>
-    `;
-    
-    playerContainer.style.display = 'flex';
+    if (playerContainer && player) {
+        player.innerHTML = `
+            <iframe width="100%" height="100%" 
+                src="https://www.youtube.com/embed/${videoId}?autoplay=1" 
+                title="YouTube video player" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+            </iframe>
+        `;
+        playerContainer.style.display = 'flex';
+    }
 }
 
 function closeVideoPlayer() {
     const playerContainer = document.getElementById('video-player-container');
     const player = document.getElementById('video-player');
     
-    player.innerHTML = '';
-    playerContainer.style.display = 'none';
-}
-
-function showNextVideo() {
-    currentVideoIndex = (currentVideoIndex + 1) % videoObjects.length;
-    highlightCurrentVideo();
-    rotateToCurrentVideo();
-}
-
-function showPreviousVideo() {
-    currentVideoIndex = (currentVideoIndex - 1 + videoObjects.length) % videoObjects.length;
-    highlightCurrentVideo();
-    rotateToCurrentVideo();
-}
-
-function rotateToCurrentVideo() {
-    const currentVideo = videoObjects[currentVideoIndex];
-    const targetPosition = new THREE.Vector3().copy(currentVideo.position).normalize().multiplyScalar(20);
-    
-    gsap.to(videoGalleryCamera.position, {
-        x: targetPosition.x,
-        y: targetPosition.y,
-        z: targetPosition.z,
-        duration: 1,
-        ease: 'power2.inOut',
-        onUpdate: () => {
-            videoGalleryCamera.lookAt(0, 0, 0);
-        }
-    });
+    if (playerContainer && player) {
+        player.innerHTML = '';
+        playerContainer.style.display = 'none';
+    }
 }
 
 function cleanupVideoGallery() {
@@ -731,9 +801,8 @@ function cleanupVideoGallery() {
     
     videoGalleryActive = false;
     
-    document.getElementById('prev-video').removeEventListener('click', showPreviousVideo);
-    document.getElementById('next-video').removeEventListener('click', showNextVideo);
-    document.getElementById('video-player-close').removeEventListener('click', closeVideoPlayer);
+    const closeBtn = document.getElementById('video-player-close');
+    if (closeBtn) closeBtn.removeEventListener('click', closeVideoPlayer);
     
     closeVideoPlayer();
     
@@ -765,4 +834,263 @@ function cleanupVideoGallery() {
     videoGalleryCamera = null;
     videoGalleryRenderer = null;
     videoGalleryControls = null;
+}
+
+// ===== 3D Photo Gallery Implementation =====
+let photoGalleryScene, photoGalleryRenderer, photoGalleryControls;
+let photoObjects = [];
+let expandedPhoto = null;
+
+function initAboutGallery() {
+    const container = document.getElementById('about-3d-container');
+    if (!container) {
+        console.error('About 3D container not found');
+        return;
+    }
+    
+    photoGalleryScene = new THREE.Scene();
+    photoGalleryCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    photoGalleryCamera.position.set(0, 0, 15);
+    
+    photoGalleryRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    photoGalleryRenderer.setSize(window.innerWidth, window.innerHeight);
+    container.appendChild(photoGalleryRenderer.domElement);
+    
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    photoGalleryScene.add(ambientLight);
+    
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(0, 1, 1);
+    photoGalleryScene.add(directionalLight);
+    
+    createPhotoGallery();
+    
+    photoGalleryControls = new OrbitControls(photoGalleryCamera, photoGalleryRenderer.domElement);
+    photoGalleryControls.enableDamping = true;
+    photoGalleryControls.dampingFactor = 0.05;
+    
+    animateAboutGallery();
+}
+
+function createPhotoGallery() {
+    const photoData = [
+        { id: 'photo1', src: './images/1.jpg', desc: 'A creative project showcasing my 3D modeling skills.' },
+        { id: 'photo2', src: './images/2.jpg', desc: 'An animation experiment with dynamic lighting.' },
+        { id: 'photo3', src: './images/3.jpg', desc: 'A personal artwork blending 3D and web design.' },
+        { id: 'photo4', src: './images/4.jpg', desc: 'A personal artwork blending 3D and web design.' },
+        { id: 'photo5', src: './images/5.jpg', desc: 'A personal artwork blending 3D and web design.' },
+        { id: 'photo6', src: './images/6.jpg', desc: 'A personal artwork blending 3D and web design.' },
+        { id: 'photo7', src: './images/7.jpg', desc: 'A personal artwork blending 3D and web design.' },
+        { id: 'photo8', src: './images/8.jpg', desc: 'A personal artwork blending 3D and web design.' },
+        { id: 'photo9', src: './images/9.jpg', desc: 'A personal artwork blending 3D and web design.' },
+        { id: 'photo10', src: './images/10.jpg', desc: 'A personal artwork blending 3D and web design.' },
+        { id: 'photo11', src: './images/11.jpg', desc: 'A personal artwork blending 3D and web design.' },
+    ];
+    
+    const radius = 8;
+    photoData.forEach((photo, index) => {
+        const photoGroup = new THREE.Group();
+        const texture = new THREE.TextureLoader().load(
+            photo.src,
+            () => console.log(`Loaded ${photo.src}`),
+            undefined,
+            (err) => console.error(`Error loading ${photo.src}:`, err)
+        );
+        const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+        const geometry = new THREE.PlaneGeometry(2, 2);
+        const photoMesh = new THREE.Mesh(geometry, material);
+        
+        photoGroup.add(photoMesh);
+        
+        const angle = (index / photoData.length) * Math.PI * 2;
+        const targetX = radius * Math.cos(angle);
+        const targetY = radius * Math.sin(angle) * 0.3;
+        const targetZ = radius * Math.sin(angle) * 0.8;
+        
+        photoGroup.position.set(targetX, targetY, targetZ);
+        photoGroup.lookAt(0, 0, 0);
+        photoGroup.userData = { 
+            id: photo.id, 
+            desc: photo.desc, 
+            index: index, 
+            originalPosition: new THREE.Vector3(targetX, targetY, targetZ), 
+            src: photo.src 
+        };
+        
+        // Set initial opacity to 0 and fade in
+        photoMesh.material.opacity = 0;
+        photoMesh.material.transparent = true;
+        photoGalleryScene.add(photoGroup);
+        photoObjects.push(photoGroup);
+        
+        gsap.to(photoMesh.material, {
+            opacity: 1,
+            duration: 1,
+            delay: index * 0.2,
+            ease: 'power1.inOut'
+        });
+    });
+}
+
+function animateAboutGallery() {
+    photoObjects.forEach((photo, index) => {
+        if (!photo.userData.expanded) {
+            photo.position.y += Math.sin(clock.getElapsedTime() * 2 + index) * 0.005;
+            photo.rotation.y += 0.002;
+        }
+    });
+    
+    photoGalleryControls.update();
+    photoGalleryRenderer.render(photoGalleryScene, photoGalleryCamera);
+    requestAnimationFrame(animateAboutGallery);
+}
+
+function handleAboutGalleryClick(event) {
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+    pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    
+    raycaster.setFromCamera(pointer, photoGalleryCamera);
+    const intersects = raycaster.intersectObjects(photoObjects, true);
+    
+    if (intersects.length > 0) {
+        const target = intersects[0].object.parent;
+        
+        if (expandedPhoto === target) {
+            closeExpandedPhoto();
+        } else {
+            if (expandedPhoto) {
+                closeExpandedPhoto(() => expandPhoto(target));
+            } else {
+                expandPhoto(target);
+            }
+        }
+    } else if (expandedPhoto) {
+        closeExpandedPhoto();
+    }
+}
+
+function expandPhoto(photo) {
+    expandedPhoto = photo;
+    photo.userData.expanded = true;
+    
+    // Fade out 3D mesh
+    gsap.to(photo.children[0].material, {
+        opacity: 0,
+        duration: 0.5,
+        ease: 'power1.inOut',
+        onComplete: () => photo.visible = false
+    });
+    
+    // Create 2D image element
+    const imgElement = document.createElement('img');
+    imgElement.src = photo.userData.src;
+    imgElement.className = 'expanded-image';
+    pages.about.appendChild(imgElement);
+    
+    // Fade in 2D image
+    gsap.fromTo(imgElement, 
+        { opacity: 0 }, 
+        { opacity: 1, duration: 0.5, ease: 'power1.inOut' }
+    );
+    
+    // Add description with fade-in
+    const desc = document.createElement('div');
+    desc.className = 'photo-description';
+    desc.textContent = photo.userData.desc;
+    pages.about.appendChild(desc);
+    
+    gsap.fromTo(desc, 
+        { opacity: 0 }, 
+        { opacity: 1, duration: 0.5, ease: 'power1.inOut', delay: 0.2 }
+    );
+    
+    // Add close button with fade-in
+    const closeBtn = document.createElement('div');
+    closeBtn.className = 'photo-close-btn';
+    closeBtn.textContent = '×';
+    closeBtn.onclick = closeExpandedPhoto;
+    pages.about.appendChild(closeBtn);
+    
+    gsap.from(closeBtn, { opacity: 0, duration: 0.5, ease: 'power1.inOut', delay: 0.3 });
+}
+
+function closeExpandedPhoto(callback) {
+    if (!expandedPhoto) return;
+    
+    const imgElement = document.querySelector('.expanded-image');
+    const desc = document.querySelector('.photo-description');
+    const closeBtn = document.querySelector('.photo-close-btn');
+    
+    // Fade out 2D image
+    gsap.to(imgElement, { 
+        opacity: 0, 
+        duration: 0.5, 
+        ease: 'power1.inOut', 
+        onComplete: () => imgElement.remove() 
+    });
+    
+    // Fade out description
+    gsap.to(desc, { 
+        opacity: 0, 
+        duration: 0.5, 
+        ease: 'power1.inOut', 
+        onComplete: () => desc.remove() 
+    });
+    
+    // Fade out close button and return 3D mesh
+    gsap.to(closeBtn, { 
+        opacity: 0, 
+        duration: 0.5, 
+        ease: 'power1.inOut', 
+        onComplete: () => {
+            closeBtn.remove();
+            expandedPhoto.visible = true;
+            expandedPhoto.children[0].material.opacity = 0;
+            expandedPhoto.children[0].material.transparent = true;
+            gsap.to(expandedPhoto.children[0].material, {
+                opacity: 1,
+                duration: 0.5,
+                ease: 'power1.inOut'
+            });
+            
+            const tempExpanded = expandedPhoto;
+            expandedPhoto = null;
+            tempExpanded.userData.expanded = false;
+            
+            if (callback) callback();
+        }
+    });
+}
+
+function cleanupAboutGallery() {
+    const container = document.getElementById('about-3d-container');
+    if (container && photoGalleryRenderer) {
+        container.removeChild(photoGalleryRenderer.domElement);
+    }
+    
+    // Clean up any expanded 2D elements
+    const expandedImg = document.querySelector('.expanded-image');
+    if (expandedImg) expandedImg.remove();
+    const desc = document.querySelector('.photo-description');
+    if (desc) desc.remove();
+    const closeBtn = document.querySelector('.photo-close-btn');
+    if (closeBtn) closeBtn.remove();
+    
+    photoObjects.forEach(obj => {
+        obj.traverse(child => {
+            if (child.geometry) child.geometry.dispose();
+            if (child.material) {
+                if (child.material.map) child.material.map.dispose();
+                child.material.dispose();
+            }
+        });
+    });
+    
+    photoObjects = [];
+    photoGalleryScene = null;
+    photoGalleryCamera = null;
+    photoGalleryRenderer = null;
+    photoGalleryControls = null;
 }
