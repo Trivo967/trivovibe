@@ -201,6 +201,33 @@ body {
     border-color: #f72585;
 }
 
+/* Music Button */
+.music-btn {
+    position: fixed;
+    bottom: 20px; /* Changed from top to bottom */
+    right: 20px;
+    padding: 10px;
+    font-size: 24px;
+    background: rgba(76, 201, 240, 0.3);
+    color: white;
+    border: 1px solid #4cc9f0;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 3000;
+}
+
+.music-btn:hover {
+    background: rgba(247, 37, 133, 0.3);
+    border-color: #f72585;
+    transform: scale(1.1);
+}
+
+.music-btn.off {
+    background: rgba(247, 37, 133, 0.3);
+    border-color: #f72585;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     .project-header {
@@ -217,5 +244,12 @@ body {
     .gallery-controls {
         bottom: 80px;
         right: 20px;
+    }
+
+    .music-btn {
+        bottom: 10px; /* Adjusted for smaller screens */
+        right: 10px;
+        font-size: 20px;
+        padding: 8px;
     }
 }
