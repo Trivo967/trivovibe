@@ -210,7 +210,7 @@ let textModels = {};
 let hoveredObject = null;
 
 loader.load(
-    './model/test11.glb',
+    './model/test12.glb',
     (glb) => {
         model = glb.scene;
         const box = new THREE.Box3().setFromObject(model);
@@ -229,14 +229,13 @@ loader.load(
         });
 
         scene.add(model);
-        console.log('test11.glb loaded:', model);
+        console.log('test12.glb loaded:', model);
     },
     (xhr) => {
         console.log((xhr.loaded / xhr.total * 100) + '% loaded');
     },
     (error) => {
-        console.error('Error loading test11.glb:', error);
-        // Optional: Add fallback or user notification
+        console.error('Error loading test12.glb:', error);
     }
 );
 
@@ -263,30 +262,23 @@ gsap.to(planeMaterial, {
     ease: 'sine.inOut'
 });
 
-// Three-Point Lighting with Shadows
-const keyLight = new THREE.DirectionalLight(0xffffff, 1.5);
-keyLight.position.set(5, 5, 5);
-keyLight.castShadow = true;
-keyLight.shadow.mapSize.width = 1024;
-keyLight.shadow.mapSize.height = 1024;
-keyLight.shadow.camera.near = 0.5;
-keyLight.shadow.camera.far = 500;
-keyLight.shadow.camera.left = -200;
-keyLight.shadow.camera.right = 200;
-keyLight.shadow.camera.top = 200;
-keyLight.shadow.camera.bottom = -200;
-scene.add(keyLight);
+// Sunlight setup
+const sunlight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
+sunlight.position.set(0, 100, 50);
+scene.add(sunlight);
 
-const fillLight = new THREE.DirectionalLight(0xffffff, 2);
-fillLight.position.set(-5, 3, 5);
-scene.add(fillLight);
-
-const backLight = new THREE.DirectionalLight(0xffffff, 1.5);
-backLight.position.set(0, 5, -5);
-scene.add(backLight);
-
-const ambientLight = new THREE.AmbientLight(0x404040);
-scene.add(ambientLight);
+const sunShadowLight = new THREE.DirectionalLight(0xffffff, 0.8);
+sunShadowLight.position.set(50, 100, 50);
+sunShadowLight.castShadow = true;
+sunShadowLight.shadow.mapSize.width = 1024;
+sunShadowLight.shadow.mapSize.height = 1024;
+sunShadowLight.shadow.camera.near = 0.5;
+sunShadowLight.shadow.camera.far = 500;
+sunShadowLight.shadow.camera.left = -200;
+sunShadowLight.shadow.camera.right = 200;
+sunShadowLight.shadow.camera.top = 200;
+sunShadowLight.shadow.camera.bottom = -200;
+scene.add(sunShadowLight);
 
 // Camera (Perspective)
 const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.01, 10000);
@@ -320,11 +312,12 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-// Declare video/photo gallery variables upfront
+// Declare video/photo/contact gallery variables upfront
 let videoGalleryActive = false;
 let videoGalleryScene = null;
 let videoGalleryCamera = null;
 let photoGalleryCamera = null;
+let contactGalleryCamera = null;
 
 // Animation loop
 function animate() {
@@ -375,6 +368,11 @@ function handleResize() {
         photoGalleryCamera.updateProjectionMatrix();
         photoGalleryRenderer.setSize(sizes.width, sizes.height);
     }
+    if (contactGalleryCamera) {
+        contactGalleryCamera.aspect = sizes.width / sizes.height;
+        contactGalleryCamera.updateProjectionMatrix();
+        contactGalleryRenderer.setSize(sizes.width, sizes.height);
+    }
 }
 window.addEventListener('resize', handleResize);
 
@@ -383,7 +381,10 @@ window.addEventListener('mousemove', onMouseMove);
 
 let photoGalleryRaycaster = new THREE.Raycaster();
 let photoGalleryPointer = new THREE.Vector2();
+let contactRaycaster = new THREE.Raycaster();
+let contactPointer = new THREE.Vector2();
 let hoveredPhoto = null;
+let hoveredContact = null;
 
 function onMouseMove(event) {
     pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -422,6 +423,10 @@ function onMouseMove(event) {
     if (pages.about && pages.about.style.display === 'block') {
         handleAboutGalleryHover(event);
     }
+    
+    if (pages.contacts && pages.contacts.style.display === 'block') {
+        handleContactGalleryHover(event);
+    }
 }
 
 function handleAboutGalleryHover(event) {
@@ -453,6 +458,8 @@ window.addEventListener('click', (event) => {
         handleVideoGalleryClick(event);
     } else if (pages.about && pages.about.style.display === 'block') {
         handleAboutGalleryClick(event);
+    } else if (pages.contacts && pages.contacts.style.display === 'block') {
+        handleContactGalleryClick(event);
     } else {
         onClick(event);
     }
@@ -484,6 +491,7 @@ function onClick(event) {
                 break;
             case 'contacts':
                 targetPage = pages.contacts;
+                initContactGallery();
                 break;
             default:
                 console.log('Clicked unknown model:', clickedObject);
@@ -518,6 +526,8 @@ document.querySelectorAll('.back-btn').forEach(button => {
                 cleanupVideoGallery();
             } else if (currentPage.id === 'about-page') {
                 cleanupAboutGallery();
+            } else if (currentPage.id === 'contacts-page') {
+                cleanupContactGallery();
             }
             
             gsap.to(currentPage, {
@@ -579,20 +589,14 @@ function initVideoGallery() {
     videoGalleryRenderer.setClearColor(0x000000, 0);
     container.appendChild(videoGalleryRenderer.domElement);
     
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    videoGalleryScene.add(ambientLight);
+    const gallerySunlight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
+    gallerySunlight.position.set(0, 100, 50);
+    videoGalleryScene.add(gallerySunlight);
     
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(0, 1, 1);
-    videoGalleryScene.add(directionalLight);
-    
-    const pointLight1 = new THREE.PointLight(0x4cc9f0, 2, 50);
-    pointLight1.position.set(10, 5, 5);
-    videoGalleryScene.add(pointLight1);
-    
-    const pointLight2 = new THREE.PointLight(0xf72585, 2, 50);
-    pointLight2.position.set(-10, -5, 5);
-    videoGalleryScene.add(pointLight2);
+    const galleryShadowLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    galleryShadowLight.position.set(50, 100, 50);
+    galleryShadowLight.castShadow = true;
+    videoGalleryScene.add(galleryShadowLight);
     
     createVideoThumbnails();
     
@@ -856,12 +860,14 @@ function initAboutGallery() {
     photoGalleryRenderer.setSize(window.innerWidth, window.innerHeight);
     container.appendChild(photoGalleryRenderer.domElement);
     
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    photoGalleryScene.add(ambientLight);
+    const photoSunlight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
+    photoSunlight.position.set(0, 100, 50);
+    photoGalleryScene.add(photoSunlight);
     
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(0, 1, 1);
-    photoGalleryScene.add(directionalLight);
+    const photoShadowLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    photoShadowLight.position.set(50, 100, 50);
+    photoShadowLight.castShadow = true;
+    photoGalleryScene.add(photoShadowLight);
     
     createPhotoGallery();
     
@@ -874,17 +880,14 @@ function initAboutGallery() {
 
 function createPhotoGallery() {
     const photoData = [
-        { id: 'photo1', src: './images/1.jpg', desc: 'A creative project showcasing my 3D modeling skills.' },
-        { id: 'photo2', src: './images/2.jpg', desc: 'An animation experiment with dynamic lighting.' },
-        { id: 'photo3', src: './images/3.jpg', desc: 'A personal artwork blending 3D and web design.' },
-        { id: 'photo4', src: './images/4.jpg', desc: 'A personal artwork blending 3D and web design.' },
-        { id: 'photo5', src: './images/5.jpg', desc: 'A personal artwork blending 3D and web design.' },
-        { id: 'photo6', src: './images/6.jpg', desc: 'A personal artwork blending 3D and web design.' },
-        { id: 'photo7', src: './images/7.jpg', desc: 'A personal artwork blending 3D and web design.' },
-        { id: 'photo8', src: './images/8.jpg', desc: 'A personal artwork blending 3D and web design.' },
-        { id: 'photo9', src: './images/9.jpg', desc: 'A personal artwork blending 3D and web design.' },
-        { id: 'photo10', src: './images/10.jpg', desc: 'A personal artwork blending 3D and web design.' },
-        { id: 'photo11', src: './images/11.jpg', desc: 'A personal artwork blending 3D and web design.' },
+        { id: 'photo1', src: './images/1.jpg', desc: 'This is me 90% of the time, currently' },
+        { id: 'photo2', src: './images/2.jpg', desc: 'This picture captured my attention, I dont know why' },
+        { id: 'photo4', src: './images/4.jpg', desc: 'Gotta post this so the bros know I listen to Joe Rogan' },
+        { id: 'photo6', src: './images/6.jpg', desc: 'I walked along this river walk for 2 hours, it was magical!' },
+        { id: 'photo7', src: './images/7.jpg', desc: 'coffee makes me smile' },
+        { id: 'photo9', src: './images/9.jpg', desc: 'I stayed here and did nothing for 2 days, meditation mode activate.' },
+        { id: 'photo10', src: './images/10.jpg', desc: 'Morning ocean sunrise, this makes me feel sucessful somehow.' },
+        { id: 'photo11', src: './images/11.jpg', desc: 'The inside is boring, but the outside is BRUTAL!' },
     ];
     
     const radius = 8;
@@ -917,7 +920,6 @@ function createPhotoGallery() {
             src: photo.src 
         };
         
-        // Set initial opacity to 0 and fade in
         photoMesh.material.opacity = 0;
         photoMesh.material.transparent = true;
         photoGalleryScene.add(photoGroup);
@@ -975,7 +977,6 @@ function expandPhoto(photo) {
     expandedPhoto = photo;
     photo.userData.expanded = true;
     
-    // Fade out 3D mesh
     gsap.to(photo.children[0].material, {
         opacity: 0,
         duration: 0.5,
@@ -983,19 +984,16 @@ function expandPhoto(photo) {
         onComplete: () => photo.visible = false
     });
     
-    // Create 2D image element
     const imgElement = document.createElement('img');
     imgElement.src = photo.userData.src;
     imgElement.className = 'expanded-image';
     pages.about.appendChild(imgElement);
     
-    // Fade in 2D image
     gsap.fromTo(imgElement, 
         { opacity: 0 }, 
         { opacity: 1, duration: 0.5, ease: 'power1.inOut' }
     );
     
-    // Add description with fade-in
     const desc = document.createElement('div');
     desc.className = 'photo-description';
     desc.textContent = photo.userData.desc;
@@ -1006,7 +1004,6 @@ function expandPhoto(photo) {
         { opacity: 1, duration: 0.5, ease: 'power1.inOut', delay: 0.2 }
     );
     
-    // Add close button with fade-in
     const closeBtn = document.createElement('div');
     closeBtn.className = 'photo-close-btn';
     closeBtn.textContent = '×';
@@ -1023,7 +1020,6 @@ function closeExpandedPhoto(callback) {
     const desc = document.querySelector('.photo-description');
     const closeBtn = document.querySelector('.photo-close-btn');
     
-    // Fade out 2D image
     gsap.to(imgElement, { 
         opacity: 0, 
         duration: 0.5, 
@@ -1031,7 +1027,6 @@ function closeExpandedPhoto(callback) {
         onComplete: () => imgElement.remove() 
     });
     
-    // Fade out description
     gsap.to(desc, { 
         opacity: 0, 
         duration: 0.5, 
@@ -1039,7 +1034,6 @@ function closeExpandedPhoto(callback) {
         onComplete: () => desc.remove() 
     });
     
-    // Fade out close button and return 3D mesh
     gsap.to(closeBtn, { 
         opacity: 0, 
         duration: 0.5, 
@@ -1070,7 +1064,6 @@ function cleanupAboutGallery() {
         container.removeChild(photoGalleryRenderer.domElement);
     }
     
-    // Clean up any expanded 2D elements
     const expandedImg = document.querySelector('.expanded-image');
     if (expandedImg) expandedImg.remove();
     const desc = document.querySelector('.photo-description');
@@ -1093,4 +1086,201 @@ function cleanupAboutGallery() {
     photoGalleryCamera = null;
     photoGalleryRenderer = null;
     photoGalleryControls = null;
+}
+
+// ===== 3D Contact Page Implementation =====
+let contactGalleryScene, contactGalleryRenderer, contactGalleryControls;
+let contactObjects = [];
+
+const contactData = [
+    { 
+        id: 'email', 
+        src: 'https://cdn-icons-png.flaticon.com/512/732/732200.png',
+        url: 'mailto:vothanhtri2204@gmail.com', 
+        label: 'Email' 
+    },
+    { 
+        id: 'linkedin', 
+        src: 'https://cdn-icons-png.flaticon.com/512/174/174857.png',
+        url: 'https://www.linkedin.com/in/trithanhvo967', 
+        label: 'LinkedIn' 
+    },
+    { 
+        id: 'instagram', 
+        src: 'https://cdn-icons-png.flaticon.com/512/174/174855.png',
+        url: 'https://www.instagram.com/trivovibes', 
+        label: 'Instagram' 
+    }
+];
+
+function initContactGallery() {
+    const container = document.getElementById('contacts-3d-container');
+    if (!container) {
+        console.error('Contacts 3D container not found');
+        return;
+    }
+    
+    contactGalleryScene = new THREE.Scene();
+    contactGalleryCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    contactGalleryCamera.position.set(0, 0, 10);
+    
+    contactGalleryRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    contactGalleryRenderer.setSize(window.innerWidth, window.innerHeight);
+    contactGalleryRenderer.setClearColor(0x000000, 0);
+    container.appendChild(contactGalleryRenderer.domElement);
+    
+    const contactSunlight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
+    contactSunlight.position.set(0, 100, 50);
+    contactGalleryScene.add(contactSunlight);
+    
+    const contactShadowLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    contactShadowLight.position.set(50, 100, 50);
+    contactShadowLight.castShadow = true;
+    contactGalleryScene.add(contactShadowLight);
+    
+    createContactIcons();
+    
+    contactGalleryControls = new OrbitControls(contactGalleryCamera, contactGalleryRenderer.domElement);
+    contactGalleryControls.enableDamping = true;
+    contactGalleryControls.dampingFactor = 0.05;
+    contactGalleryControls.maxDistance = 20;
+    contactGalleryControls.minDistance = 5;
+    
+    animateContactGallery();
+}
+
+function createContactIcons() {
+    const radius = 5;
+    contactData.forEach((contact, index) => {
+        const contactGroup = new THREE.Group();
+        const texture = new THREE.TextureLoader().load(
+            contact.src,
+            () => console.log(`Loaded ${contact.src}`),
+            undefined,
+            (err) => console.error(`Error loading ${contact.src}:`, err)
+        );
+        const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, side: THREE.DoubleSide });
+        const geometry = new THREE.PlaneGeometry(2, 2);
+        const iconMesh = new THREE.Mesh(geometry, material);
+        
+        contactGroup.add(iconMesh);
+        
+        const angle = (index / contactData.length) * Math.PI * 2;
+        const targetX = radius * Math.cos(angle);
+        const targetY = radius * Math.sin(angle) * 0.3;
+        const targetZ = radius * Math.sin(angle) * 0.8;
+        
+        contactGroup.position.set(targetX, targetY, targetZ);
+        contactGroup.lookAt(0, 0, 0);
+        contactGroup.userData = { 
+            id: contact.id, 
+            url: contact.url, 
+            label: contact.label,
+            originalPosition: new THREE.Vector3(targetX, targetY, targetZ)
+        };
+        
+        iconMesh.material.opacity = 0;
+        contactGalleryScene.add(contactGroup);
+        contactObjects.push(contactGroup);
+        
+        gsap.to(iconMesh.material, {
+            opacity: 1,
+            duration: 1,
+            delay: index * 0.2,
+            ease: 'power1.inOut'
+        });
+    });
+}
+
+function animateContactGallery() {
+    contactObjects.forEach((contact, index) => {
+        contact.rotation.y += 0.02;
+        contact.position.y += Math.sin(clock.getElapsedTime() * 2 + index) * 0.005;
+    });
+    
+    contactGalleryControls.update();
+    contactGalleryRenderer.render(contactGalleryScene, contactGalleryCamera);
+    requestAnimationFrame(animateContactGallery);
+}
+
+function handleContactGalleryHover(event) {
+    contactPointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+    contactPointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    
+    contactRaycaster.setFromCamera(contactPointer, contactGalleryCamera);
+    const intersects = contactRaycaster.intersectObjects(contactObjects, true);
+    
+    if (hoveredContact && (!intersects.length || intersects[0].object.parent !== hoveredContact)) {
+        gsap.to(hoveredContact.scale, { x: 1, y: 1, z: 1, duration: 0.3 });
+        const label = document.getElementById(`label-${hoveredContact.userData.id}`);
+        if (label) label.style.opacity = '0';
+        hoveredContact = null;
+        document.body.style.cursor = 'default';
+    }
+    
+    if (intersects.length > 0) {
+        const newHovered = intersects[0].object.parent;
+        if (newHovered !== hoveredContact) {
+            hoveredContact = newHovered;
+            gsap.to(hoveredContact.scale, { x: 1.2, y: 1.2, z: 1.2, duration: 0.3 });
+            document.body.style.cursor = 'pointer';
+            
+            let label = document.getElementById(`label-${hoveredContact.userData.id}`);
+            if (!label) {
+                label = document.createElement('div');
+                label.id = `label-${hoveredContact.userData.id}`;
+                label.className = 'contact-icon-label';
+                label.textContent = hoveredContact.userData.label;
+                document.getElementById('contacts-page').appendChild(label);
+            }
+            
+            const rect = contactGalleryRenderer.domElement.getBoundingClientRect();
+            const vector = new THREE.Vector3();
+            hoveredContact.getWorldPosition(vector);
+            vector.project(contactGalleryCamera);
+            const x = (vector.x * 0.5 + 0.5) * rect.width + rect.left;
+            const y = (-vector.y * 0.5 + 0.5) * rect.height + rect.top;
+            label.style.left = `${x}px`;
+            label.style.top = `${y}px`;
+            label.style.opacity = '1';
+        }
+    }
+}
+
+function handleContactGalleryClick(event) {
+    contactPointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+    contactPointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    
+    contactRaycaster.setFromCamera(contactPointer, contactGalleryCamera);
+    const intersects = contactRaycaster.intersectObjects(contactObjects, true);
+    
+    if (intersects.length > 0) {
+        const target = intersects[0].object.parent;
+        window.open(target.userData.url, '_blank');
+    }
+}
+
+function cleanupContactGallery() {
+    const container = document.getElementById('contacts-3d-container');
+    if (container && contactGalleryRenderer) {
+        container.removeChild(contactGalleryRenderer.domElement);
+    }
+    
+    contactObjects.forEach(obj => {
+        obj.traverse(child => {
+            if (child.geometry) child.geometry.dispose();
+            if (child.material) {
+                if (child.material.map) child.material.map.dispose();
+                child.material.dispose();
+            }
+        });
+    });
+    
+    document.querySelectorAll('.contact-icon-label').forEach(label => label.remove());
+    
+    contactObjects = [];
+    contactGalleryScene = null;
+    contactGalleryCamera = null;
+    contactGalleryRenderer = null;
+    contactGalleryControls = null;
 }
