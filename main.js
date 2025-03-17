@@ -210,7 +210,7 @@ let textModels = {};
 let hoveredObject = null;
 
 loader.load(
-    './model/test12.glb',
+    './model/test13.glb',
     (glb) => {
         model = glb.scene;
         const box = new THREE.Box3().setFromObject(model);
@@ -220,64 +220,58 @@ loader.load(
 
         model.traverse((child) => {
             if (child.isMesh) {
+                child.castShadow = true; // Enable shadow casting for all meshes
+                child.receiveShadow = false; // Meshes don’t need to receive shadows unless desired
                 if (child.name === 'projects' || child.name === 'contacts' || child.name === 'about') {
                     textModels[child.name] = { mesh: child };
                     child.scale.set(0.5, 0.5, 0.5);
-                    child.castShadow = true;
                 }
             }
         });
 
         scene.add(model);
-        console.log('test12.glb loaded:', model);
+        console.log('test13.glb loaded:', model);
     },
     (xhr) => {
         console.log((xhr.loaded / xhr.total * 100) + '% loaded');
     },
     (error) => {
-        console.error('Error loading test12.glb:', error);
+        console.error('Error loading test13.glb:', error);
     }
 );
 
-// Background Plane with Wireframe Grid Effect
-const planeGeometry = new THREE.PlaneGeometry(1000, 1000, 50, 50);
+// Background Plane (Solid surface for shadows)
+const planeGeometry = new THREE.PlaneGeometry(1000, 1000, 1, 1); // Reduced segments for solid plane
 const planeMaterial = new THREE.MeshStandardMaterial({
     color: 0x1a1a2e,
-    transparent: true,
-    opacity: 0.8,
     side: THREE.DoubleSide,
-    wireframe: true
+    roughness: 0.8, // Adds some realism to the surface
+    metalness: 0.2
 });
 const plane = new THREE.Mesh(planeGeometry, planeMaterial);
 plane.rotation.x = -Math.PI / 2;
 plane.position.y = -50;
-plane.receiveShadow = true;
+plane.receiveShadow = true; // Plane receives shadows
+plane.castShadow = false; // Plane doesn’t cast shadows
 scene.add(plane);
-
-gsap.to(planeMaterial, {
-    opacity: 0.5,
-    duration: 2,
-    repeat: -1,
-    yoyo: true,
-    ease: 'sine.inOut'
-});
 
 // Sunlight setup
 const sunlight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
 sunlight.position.set(0, 100, 50);
 scene.add(sunlight);
 
-const sunShadowLight = new THREE.DirectionalLight(0xffffff, 0.8);
-sunShadowLight.position.set(50, 100, 50);
+const sunShadowLight = new THREE.DirectionalLight(0xffffff, 1.0); // Increased intensity for stronger shadows
+sunShadowLight.position.set(50, 200, 50); // Moved higher for broader coverage
 sunShadowLight.castShadow = true;
-sunShadowLight.shadow.mapSize.width = 1024;
-sunShadowLight.shadow.mapSize.height = 1024;
-sunShadowLight.shadow.camera.near = 0.5;
-sunShadowLight.shadow.camera.far = 500;
-sunShadowLight.shadow.camera.left = -200;
-sunShadowLight.shadow.camera.right = 200;
-sunShadowLight.shadow.camera.top = 200;
-sunShadowLight.shadow.camera.bottom = -200;
+sunShadowLight.shadow.mapSize.width = 2048; // High resolution for crisp shadows
+sunShadowLight.shadow.mapSize.height = 2048;
+sunShadowLight.shadow.camera.near = 0.1;
+sunShadowLight.shadow.camera.far = 1000; // Covers the scene depth
+sunShadowLight.shadow.camera.left = -500; // Covers the scaled model and plane
+sunShadowLight.shadow.camera.right = 500;
+sunShadowLight.shadow.camera.top = 500;
+sunShadowLight.shadow.camera.bottom = -500;
+sunShadowLight.shadow.bias = -0.0001; // Reduces shadow artifacts
 scene.add(sunShadowLight);
 
 // Camera (Perspective)
@@ -309,7 +303,7 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setSize(sizes.width, sizes.height);
 renderer.setClearColor(0x1a1a2e, 1);
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Soft shadows for natural look
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
 // Declare video/photo/contact gallery variables upfront
