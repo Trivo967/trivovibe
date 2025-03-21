@@ -63,15 +63,29 @@
         <button class="back-btn">Back to Landing</button>
     </section>
     
-    <!-- About Page -->
-    <section id="about-page" class="page">
-        <h1>About Me</h1>
-        <p>Hey, I’m Tri—a 3D tinkerer who loves making stuff move, look cool, and come alive. I mess with Blender, Maya, and Unreal Engine 5, blending modeling, texturing, rigging, and animation into experiments like this site. I’m all about the flow—turning wild ideas into reality and using 3D to bring people together. No pro badge yet, just raw drive. Check my projects or say hi if you’re up for creating something!</p>
-        <div id="about-3d-container" class="about-gallery">
-            <!-- 3D photo gallery will be rendered here -->
+ <!-- About Page -->
+<section id="about-page" class="page">
+    <h1>About Me</h1>
+    <p>Hey, I’m Tri—a 3D tinkerer who loves making stuff move, look cool, and come alive. I mess with Blender, Maya, and Unreal Engine 5, blending modeling, texturing, rigging, and animation into experiments like this site. I’m all about the flow—turning wild ideas into reality and using 3D to bring people together. No pro badge yet, just raw drive. Check my projects or say hi if you’re up for creating something!</p>
+    
+    <!-- Chatbox Container -->
+    <div id="chatbox-container">
+        <div id="chatbox-header">
+            <span>Chat with TriBot</span>
+            <button id="chatbox-toggle">−</button>
         </div>
-        <button class="back-btn">Back to Landing</button>
-    </section>
+        <div id="chatbox-messages"></div>
+        <div id="chatbox-input">
+            <input type="text" id="chatbox-input-text" placeholder="Ask me anything about Tri..." />
+            <button id="chatbox-send">Send</button>
+        </div>
+    </div>
+    
+    <div id="about-3d-container" class="about-gallery">
+        <!-- 3D photo gallery will be rendered here -->
+    </div>
+    <button class="back-btn">Back to Landing</button>
+</section>
 
     <!-- Contacts Page -->
     <section id="contacts-page" class="page">

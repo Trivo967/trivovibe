@@ -210,7 +210,7 @@ let textModels = {};
 let hoveredObject = null;
 
 loader.load(
-    './model/test13.glb',
+    './model/test15.glb',
     (glb) => {
         model = glb.scene;
         const box = new THREE.Box3().setFromObject(model);
@@ -230,13 +230,13 @@ loader.load(
         });
 
         scene.add(model);
-        console.log('test13.glb loaded:', model);
+        console.log('test15.glb loaded:', model);
     },
     (xhr) => {
         console.log((xhr.loaded / xhr.total * 100) + '% loaded');
     },
     (error) => {
-        console.error('Error loading test13.glb:', error);
+        console.error('Error loading test15.glb:', error);
     }
 );
 
@@ -260,7 +260,7 @@ const sunlight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
 sunlight.position.set(0, 100, 50);
 scene.add(sunlight);
 
-const sunShadowLight = new THREE.DirectionalLight(0xffffff, 1.0); // Increased intensity for stronger shadows
+const sunShadowLight = new THREE.DirectionalLight(0xffffff, 3); // Increased intensity for stronger shadows
 sunShadowLight.position.set(50, 200, 50); // Moved higher for broader coverage
 sunShadowLight.castShadow = true;
 sunShadowLight.shadow.mapSize.width = 2048; // High resolution for crisp shadows
@@ -1277,4 +1277,67 @@ function cleanupContactGallery() {
     contactGalleryCamera = null;
     contactGalleryRenderer = null;
     contactGalleryControls = null;
+}
+
+// Chatbox Functionality
+const chatboxContainer = document.getElementById('chatbox-container');
+const chatboxToggle = document.getElementById('chatbox-toggle');
+const chatboxMessages = document.getElementById('chatbox-messages');
+const chatboxInputText = document.getElementById('chatbox-input-text');
+const chatboxSend = document.getElementById('chatbox-send');
+
+// Toggle chatbox minimize/maximize
+chatboxToggle.addEventListener('click', () => {
+    chatboxContainer.classList.toggle('minimized');
+    chatboxToggle.textContent = chatboxContainer.classList.contains('minimized') ? '+' : '−';
+});
+
+// Send message and get response
+chatboxSend.addEventListener('click', sendMessage);
+chatboxInputText.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMessage();
+});
+
+function sendMessage() {
+    const messageText = chatboxInputText.value.trim();
+    if (!messageText) return;
+
+    // Add user message
+    const userMessage = document.createElement('div');
+    userMessage.className = 'chat-message user';
+    userMessage.textContent = messageText;
+    chatboxMessages.appendChild(userMessage);
+
+    // Clear input
+    chatboxInputText.value = '';
+
+    // Scroll to bottom
+    chatboxMessages.scrollTop = chatboxMessages.scrollHeight;
+
+    // Simulate bot response (placeholder)
+    setTimeout(() => {
+        const botMessage = document.createElement('div');
+        botMessage.className = 'chat-message bot';
+        botMessage.textContent = getBotResponse(messageText);
+        chatboxMessages.appendChild(botMessage);
+
+        // Scroll to bottom
+        chatboxMessages.scrollTop = chatboxMessages.scrollHeight;
+    }, 500);
+}
+
+// Placeholder for bot responses (replace with actual AI logic)
+function getBotResponse(message) {
+    message = message.toLowerCase();
+    if (message.includes('who are you') || message.includes('about tri')) {
+        return "I'm TriBot, here to tell you about Tri! He's a 3D tinkerer who loves making stuff move and look cool with tools like Blender, Maya, and Unreal Engine 5.";
+    } else if (message.includes('projects') || message.includes('work')) {
+        return "Tri has some cool animations in the Projects section—check them out! He's all about turning wild ideas into reality.";
+    } else if (message.includes('contact') || message.includes('reach out')) {
+        return "You can reach Tri via email, LinkedIn, or Instagram. Links are in the Contacts section!";
+    } else if (message.includes('skills') || message.includes('tools')) {
+        return "Tri works with Blender, Maya, and Unreal Engine 5, focusing on modeling, texturing, rigging, and animation. He's a creative experimenter!";
+    } else {
+        return "Hmm, not sure about that one. Ask me anything about Tri, his projects, or skills!";
+    }
 }
