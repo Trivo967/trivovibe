@@ -1280,64 +1280,82 @@ function cleanupContactGallery() {
 }
 
 // Chatbox Functionality
-const chatboxContainer = document.getElementById('chatbox-container');
-const chatboxToggle = document.getElementById('chatbox-toggle');
-const chatboxMessages = document.getElementById('chatbox-messages');
-const chatboxInputText = document.getElementById('chatbox-input-text');
-const chatboxSend = document.getElementById('chatbox-send');
+const chatboxContainer = document.getElementById("chatbox-container");
+const chatboxToggle = document.getElementById("chatbox-toggle");
+const chatboxMessages = document.getElementById("chatbox-messages");
+const chatboxInputText = document.getElementById("chatbox-input-text");
+const chatboxSend = document.getElementById("chatbox-send");
+
+// Display a welcome message when the chatbox loads
+document.addEventListener("DOMContentLoaded", () => {
+    if (chatboxMessages) {
+        const welcomeMessage = document.createElement("div");
+        welcomeMessage.className = "chat-message bot";
+        welcomeMessage.textContent = "Hey! I'm TriBot. Ask me about Tri's skills, projects, or how to get in touch!";
+        chatboxMessages.appendChild(welcomeMessage);
+    }
+});
 
 // Toggle chatbox minimize/maximize
-chatboxToggle.addEventListener('click', () => {
-    chatboxContainer.classList.toggle('minimized');
-    chatboxToggle.textContent = chatboxContainer.classList.contains('minimized') ? '+' : '−';
+chatboxToggle.addEventListener("click", () => {
+    chatboxContainer.classList.toggle("minimized");
+    chatboxToggle.textContent = chatboxContainer.classList.contains("minimized") ? "+" : "−";
 });
 
 // Send message and get response
-chatboxSend.addEventListener('click', sendMessage);
-chatboxInputText.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') sendMessage();
+chatboxSend.addEventListener("click", sendMessage);
+chatboxInputText.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") sendMessage();
 });
 
-function sendMessage() {
+async function sendMessage() {
     const messageText = chatboxInputText.value.trim();
     if (!messageText) return;
 
-    // Add user message
-    const userMessage = document.createElement('div');
-    userMessage.className = 'chat-message user';
+    // Add user message to the chat
+    const userMessage = document.createElement("div");
+    userMessage.className = "chat-message user";
     userMessage.textContent = messageText;
     chatboxMessages.appendChild(userMessage);
 
-    // Clear input
-    chatboxInputText.value = '';
+    // Add a "thinking" placeholder
+    const thinkingMessage = document.createElement("div");
+    thinkingMessage.className = "chat-message bot";
+    thinkingMessage.textContent = "TriBot is thinking...";
+    chatboxMessages.appendChild(thinkingMessage);
 
-    // Scroll to bottom
+    // Clear input and scroll to bottom
+    chatboxInputText.value = "";
     chatboxMessages.scrollTop = chatboxMessages.scrollHeight;
 
-    // Simulate bot response (placeholder)
-    setTimeout(() => {
-        const botMessage = document.createElement('div');
-        botMessage.className = 'chat-message bot';
-        botMessage.textContent = getBotResponse(messageText);
+    try {
+        // Call the serverless function
+        const response = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: messageText })
+        });
+
+        const data = await response.json();
+        if (!response.ok || data.error) {
+            throw new Error(data.error || "Failed to fetch response");
+        }
+
+        // Remove the "thinking" message and display the AI response
+        thinkingMessage.remove();
+        const botMessage = document.createElement("div");
+        botMessage.className = "chat-message bot";
+        botMessage.textContent = data.reply;
         chatboxMessages.appendChild(botMessage);
-
-        // Scroll to bottom
-        chatboxMessages.scrollTop = chatboxMessages.scrollHeight;
-    }, 500);
-}
-
-// Placeholder for bot responses (replace with actual AI logic)
-function getBotResponse(message) {
-    message = message.toLowerCase();
-    if (message.includes('who are you') || message.includes('about tri')) {
-        return "I'm TriBot, here to tell you about Tri! He's a 3D tinkerer who loves making stuff move and look cool with tools like Blender, Maya, and Unreal Engine 5.";
-    } else if (message.includes('projects') || message.includes('work')) {
-        return "Tri has some cool animations in the Projects section—check them out! He's all about turning wild ideas into reality.";
-    } else if (message.includes('contact') || message.includes('reach out')) {
-        return "You can reach Tri via email, LinkedIn, or Instagram. Links are in the Contacts section!";
-    } else if (message.includes('skills') || message.includes('tools')) {
-        return "Tri works with Blender, Maya, and Unreal Engine 5, focusing on modeling, texturing, rigging, and animation. He's a creative experimenter!";
-    } else {
-        return "Hmm, not sure about that one. Ask me anything about Tri, his projects, or skills!";
+    } catch (error) {
+        console.error("Error fetching response:", error);
+        thinkingMessage.remove();
+        const errorMessage = document.createElement("div");
+        errorMessage.className = "chat-message bot";
+        errorMessage.textContent = "Oops, something broke! Try asking again.";
+        chatboxMessages.appendChild(errorMessage);
     }
+
+    // Scroll to bottom after adding the response
+    chatboxMessages.scrollTop = chatboxMessages.scrollHeight;
 }
