@@ -210,7 +210,7 @@ let textModels = {};
 let hoveredObject = null;
 
 loader.load(
-    './model/test15.glb',
+    './model/test13.glb',
     (glb) => {
         model = glb.scene;
         const box = new THREE.Box3().setFromObject(model);
@@ -230,13 +230,13 @@ loader.load(
         });
 
         scene.add(model);
-        console.log('test15.glb loaded:', model);
+        console.log('test13.glb loaded:', model);
     },
     (xhr) => {
         console.log((xhr.loaded / xhr.total * 100) + '% loaded');
     },
     (error) => {
-        console.error('Error loading test15.glb:', error);
+        console.error('Error loading test13.glb:', error);
     }
 );
 
@@ -260,7 +260,7 @@ const sunlight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
 sunlight.position.set(0, 100, 50);
 scene.add(sunlight);
 
-const sunShadowLight = new THREE.DirectionalLight(0xffffff, 3); // Increased intensity for stronger shadows
+const sunShadowLight = new THREE.DirectionalLight(0xffffff, 1.0); // Increased intensity for stronger shadows
 sunShadowLight.position.set(50, 200, 50); // Moved higher for broader coverage
 sunShadowLight.castShadow = true;
 sunShadowLight.shadow.mapSize.width = 2048; // High resolution for crisp shadows
@@ -1277,85 +1277,4 @@ function cleanupContactGallery() {
     contactGalleryCamera = null;
     contactGalleryRenderer = null;
     contactGalleryControls = null;
-}
-
-// Chatbox Functionality
-const chatboxContainer = document.getElementById("chatbox-container");
-const chatboxToggle = document.getElementById("chatbox-toggle");
-const chatboxMessages = document.getElementById("chatbox-messages");
-const chatboxInputText = document.getElementById("chatbox-input-text");
-const chatboxSend = document.getElementById("chatbox-send");
-
-// Display a welcome message when the chatbox loads
-document.addEventListener("DOMContentLoaded", () => {
-    if (chatboxMessages) {
-        const welcomeMessage = document.createElement("div");
-        welcomeMessage.className = "chat-message bot";
-        welcomeMessage.textContent = "Hey! I'm TriBot. Ask me about Tri's skills, projects, or how to get in touch!";
-        chatboxMessages.appendChild(welcomeMessage);
-    }
-});
-
-// Toggle chatbox minimize/maximize
-chatboxToggle.addEventListener("click", () => {
-    chatboxContainer.classList.toggle("minimized");
-    chatboxToggle.textContent = chatboxContainer.classList.contains("minimized") ? "+" : "−";
-});
-
-// Send message and get response
-chatboxSend.addEventListener("click", sendMessage);
-chatboxInputText.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") sendMessage();
-});
-
-async function sendMessage() {
-    const messageText = chatboxInputText.value.trim();
-    if (!messageText) return;
-
-    // Add user message to the chat
-    const userMessage = document.createElement("div");
-    userMessage.className = "chat-message user";
-    userMessage.textContent = messageText;
-    chatboxMessages.appendChild(userMessage);
-
-    // Add a "thinking" placeholder
-    const thinkingMessage = document.createElement("div");
-    thinkingMessage.className = "chat-message bot";
-    thinkingMessage.textContent = "TriBot is thinking...";
-    chatboxMessages.appendChild(thinkingMessage);
-
-    // Clear input and scroll to bottom
-    chatboxInputText.value = "";
-    chatboxMessages.scrollTop = chatboxMessages.scrollHeight;
-
-    try {
-        // Call the serverless function
-        const response = await fetch("/api/chat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: messageText })
-        });
-
-        const data = await response.json();
-        if (!response.ok || data.error) {
-            throw new Error(data.error || "Failed to fetch response");
-        }
-
-        // Remove the "thinking" message and display the AI response
-        thinkingMessage.remove();
-        const botMessage = document.createElement("div");
-        botMessage.className = "chat-message bot";
-        botMessage.textContent = data.reply;
-        chatboxMessages.appendChild(botMessage);
-    } catch (error) {
-        console.error("Error fetching response:", error);
-        thinkingMessage.remove();
-        const errorMessage = document.createElement("div");
-        errorMessage.className = "chat-message bot";
-        errorMessage.textContent = "Oops, something broke! Try asking again.";
-        chatboxMessages.appendChild(errorMessage);
-    }
-
-    // Scroll to bottom after adding the response
-    chatboxMessages.scrollTop = chatboxMessages.scrollHeight;
 }
