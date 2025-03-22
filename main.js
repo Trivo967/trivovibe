@@ -210,7 +210,7 @@ let textModels = {};
 let hoveredObject = null;
 
 loader.load(
-    './model/test13.glb',
+    './model/test27.glb',
     (glb) => {
         model = glb.scene;
         const box = new THREE.Box3().setFromObject(model);
@@ -230,37 +230,23 @@ loader.load(
         });
 
         scene.add(model);
-        console.log('test13.glb loaded:', model);
+        console.log('test27.glb loaded:', model);
     },
     (xhr) => {
         console.log((xhr.loaded / xhr.total * 100) + '% loaded');
     },
     (error) => {
-        console.error('Error loading test13.glb:', error);
+        console.error('Error loading test27.glb:', error);
     }
 );
 
-// Background Plane (Solid surface for shadows)
-const planeGeometry = new THREE.PlaneGeometry(1000, 1000, 1, 1); // Reduced segments for solid plane
-const planeMaterial = new THREE.MeshStandardMaterial({
-    color: 0x1a1a2e,
-    side: THREE.DoubleSide,
-    roughness: 0.8, // Adds some realism to the surface
-    metalness: 0.2
-});
-const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-plane.rotation.x = -Math.PI / 2;
-plane.position.y = -50;
-plane.receiveShadow = true; // Plane receives shadows
-plane.castShadow = false; // Plane doesn’t cast shadows
-scene.add(plane);
 
 // Sunlight setup
 const sunlight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
 sunlight.position.set(0, 100, 50);
 scene.add(sunlight);
 
-const sunShadowLight = new THREE.DirectionalLight(0xffffff, 1.0); // Increased intensity for stronger shadows
+const sunShadowLight = new THREE.DirectionalLight(0xffffff, .5); // Increased intensity for stronger shadows
 sunShadowLight.position.set(50, 200, 50); // Moved higher for broader coverage
 sunShadowLight.castShadow = true;
 sunShadowLight.shadow.mapSize.width = 2048; // High resolution for crisp shadows
