@@ -59,18 +59,80 @@
             <div id="video-player-close">×</div>
             <div id="video-player"></div>
         </div>
-        
-        <button class="back-btn">Back to Landing</button>
     </section>
     
     <!-- About Page -->
     <section id="about-page" class="page">
-        <h1>About Me</h1>
-        <p>Hey, I’m Tri—a 3D tinkerer who loves making stuff move, look cool, and come alive. I mess with Blender, Maya, and Unreal Engine 5, blending modeling, texturing, rigging, and animation into experiments like this site. I’m all about the flow—turning wild ideas into reality and using 3D to bring people together. No pro badge yet, just raw drive. Check my projects or say hi if you’re up for creating something!</p>
-        <div id="about-3d-container" class="about-gallery">
-            <!-- 3D photo gallery will be rendered here -->
+        <div class="about-container">
+            <div class="about-header">
+                <h1>About Me</h1>
+            </div>
+            <div class="about-content">
+                <div class="about-text">
+                    <p>Hey, I'm Tri—a 3D tinkerer who loves making stuff move, look cool, and come alive. I mess with Blender, Maya, and Unreal Engine 5, blending modeling, texturing, rigging, and animation into experiments like this site.</p>
+                    <p>I'm all about the flow—turning wild ideas into reality and using 3D to bring people together. No pro badge yet, just raw drive. Check my projects or say hi if you're up for creating something!</p>
+                </div>
+                <div class="about-skills">
+                    <h2>Skills</h2>
+                    <div class="skill-container">
+                        <div class="skill-item" data-skill="Blender">
+                            <div class="skill-name">Blender</div>
+                            <div class="skill-bar"><div class="skill-progress" style="width: 90%"></div></div>
+                        </div>
+                        <div class="skill-item" data-skill="Maya">
+                            <div class="skill-name">Maya</div>
+                            <div class="skill-bar"><div class="skill-progress" style="width: 75%"></div></div>
+                        </div>
+                        <div class="skill-item" data-skill="Unreal Engine 5">
+                            <div class="skill-name">Unreal Engine 5</div>
+                            <div class="skill-bar"><div class="skill-progress" style="width: 80%"></div></div>
+                        </div>
+                        <div class="skill-item" data-skill="3D Modeling">
+                            <div class="skill-name">3D Modeling</div>
+                            <div class="skill-bar"><div class="skill-progress" style="width: 85%"></div></div>
+                        </div>
+                        <div class="skill-item" data-skill="Animation">
+                            <div class="skill-name">Animation</div>
+                            <div class="skill-bar"><div class="skill-progress" style="width: 95%"></div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-gallery-2d">
+                    <h2>My Work</h2>
+                    <div class="gallery-grid">
+                        <div class="gallery-item" data-desc="This is me 90% of the time, currently">
+                            <img src="./images/1.jpg" alt="Photo 1">
+                        </div>
+                        <div class="gallery-item" data-desc="This picture captured my attention, I dont know why">
+                            <img src="./images/2.jpg" alt="Photo 2">
+                        </div>
+                        <div class="gallery-item" data-desc="Gotta post this so the bros know I listen to Joe Rogan">
+                            <img src="./images/4.jpg" alt="Photo 4">
+                        </div>
+                        <div class="gallery-item" data-desc="I walked along this river walk for 2 hours, it was magical!">
+                            <img src="./images/6.jpg" alt="Photo 6">
+                        </div>
+                        <div class="gallery-item" data-desc="coffee makes me smile">
+                            <img src="./images/7.jpg" alt="Photo 7">
+                        </div>
+                        <div class="gallery-item" data-desc="I stayed here and did nothing for 2 days, meditation mode activate.">
+                            <img src="./images/9.jpg" alt="Photo 9">
+                        </div>
+                        <div class="gallery-item" data-desc="Morning ocean sunrise, this makes me feel sucessful somehow.">
+                            <img src="./images/10.jpg" alt="Photo 10">
+                        </div>
+                        <div class="gallery-item" data-desc="The inside is boring, but the outside is BRUTAL!">
+                            <img src="./images/11.jpg" alt="Photo 11">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="photo-modal" class="photo-modal">
+                <span class="modal-close">&times;</span>
+                <img class="modal-content" id="modal-img">
+                <div class="modal-caption"></div>
+            </div>
         </div>
-        <button class="back-btn">Back to Landing</button>
     </section>
 
     <!-- Contacts Page -->
@@ -84,7 +146,6 @@
         <div id="contacts-3d-container" class="contacts-gallery">
             <!-- 3D contact icons will be rendered here -->
         </div>
-        <button class="back-btn">Back to Landing</button>
     </section>
     <script type="importmap">
         {

@@ -221,7 +221,7 @@ loader.load(
         model.traverse((child) => {
             if (child.isMesh) {
                 child.castShadow = true; // Enable shadow casting for all meshes
-                child.receiveShadow = false; // Meshes don’t need to receive shadows unless desired
+                child.receiveShadow = false; // Meshes don't need to receive shadows unless desired
                 if (child.name === 'projects' || child.name === 'contacts' || child.name === 'about') {
                     textModels[child.name] = { mesh: child };
                     child.scale.set(0.5, 0.5, 0.5);
@@ -400,35 +400,8 @@ function onMouseMove(event) {
         handleVideoGalleryHover(event);
     }
     
-    if (pages.about && pages.about.style.display === 'block') {
-        handleAboutGalleryHover(event);
-    }
-    
     if (pages.contacts && pages.contacts.style.display === 'block') {
         handleContactGalleryHover(event);
-    }
-}
-
-function handleAboutGalleryHover(event) {
-    photoGalleryPointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-    photoGalleryPointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    
-    photoGalleryRaycaster.setFromCamera(photoGalleryPointer, photoGalleryCamera);
-    const intersects = photoGalleryRaycaster.intersectObjects(photoObjects, true);
-    
-    if (hoveredPhoto && (!intersects.length || intersects[0].object.parent !== hoveredPhoto)) {
-        gsap.to(hoveredPhoto.scale, { x: 1, y: 1, z: 1, duration: 0.3 });
-        hoveredPhoto = null;
-        document.body.style.cursor = 'default';
-    }
-    
-    if (intersects.length > 0) {
-        const newHovered = intersects[0].object.parent;
-        if (newHovered !== hoveredPhoto && !newHovered.userData.expanded) {
-            hoveredPhoto = newHovered;
-            gsap.to(hoveredPhoto.scale, { x: 1.1, y: 1.1, z: 1.1, duration: 0.3 });
-            document.body.style.cursor = 'pointer';
-        }
     }
 }
 
@@ -467,7 +440,7 @@ function onClick(event) {
                 break;
             case 'about':
                 targetPage = pages.about;
-                initAboutGallery();
+                initAboutPage();
                 break;
             case 'contacts':
                 targetPage = pages.contacts;
@@ -496,38 +469,37 @@ function onClick(event) {
     }
 }
 
-// Back button functionality
-document.querySelectorAll('.back-btn').forEach(button => {
-    button.addEventListener('click', () => {
-        const currentPage = button.closest('.page');
-        
-        if (currentPage) {
-            if (currentPage.id === 'projects-page') {
-                cleanupVideoGallery();
-            } else if (currentPage.id === 'about-page') {
-                cleanupAboutGallery();
-            } else if (currentPage.id === 'contacts-page') {
-                cleanupContactGallery();
-            }
-            
-            gsap.to(currentPage, {
-                opacity: 0,
-                y: 50,
-                duration: 0.5,
-                ease: 'power2.out',
-                onComplete: () => {
-                    currentPage.style.display = 'none';
-                    if (pages.landing) {
-                        pages.landing.style.display = 'block';
-                        gsap.fromTo(pages.landing, 
-                            { opacity: 0 }, 
-                            { opacity: 1, duration: 0.5, ease: 'power2.out' }
-                        );
-                    }
-                }
-            });
+// Browser back button functionality
+window.addEventListener('popstate', (event) => {
+    // Find any active page
+    const activePage = document.querySelector('.page[style*="display: block"]');
+    
+    if (activePage) {
+        if (activePage.id === 'projects-page') {
+            cleanupVideoGallery();
+        } else if (activePage.id === 'about-page') {
+            // No cleanup needed for 2D About page
+        } else if (activePage.id === 'contacts-page') {
+            cleanupContactGallery();
         }
-    });
+        
+        gsap.to(activePage, {
+            opacity: 0,
+            y: 50,
+            duration: 0.5,
+            ease: 'power2.out',
+            onComplete: () => {
+                activePage.style.display = 'none';
+                if (pages.landing) {
+                    pages.landing.style.display = 'block';
+                    gsap.fromTo(pages.landing, 
+                        { opacity: 0 }, 
+                        { opacity: 1, duration: 0.5, ease: 'power2.out' }
+                    );
+                }
+            }
+        });
+    }
 });
 
 // ===== 3D Video Gallery Implementation =====
@@ -820,252 +792,141 @@ function cleanupVideoGallery() {
     videoGalleryControls = null;
 }
 
-// ===== 3D Photo Gallery Implementation =====
-let photoGalleryScene, photoGalleryRenderer, photoGalleryControls;
-let photoObjects = [];
-let expandedPhoto = null;
-
-function initAboutGallery() {
-    const container = document.getElementById('about-3d-container');
-    if (!container) {
-        console.error('About 3D container not found');
-        return;
-    }
+// ===== 2D About Page Implementation =====
+function initAboutPage() {
+    // Initialize the 2D About page with animations
+    const aboutContainer = document.querySelector('.about-container');
+    const aboutHeader = document.querySelector('.about-header');
+    const aboutText = document.querySelector('.about-text');
+    const aboutSkills = document.querySelector('.about-skills');
+    const aboutGallery = document.querySelector('.about-gallery-2d');
+    const skillItems = document.querySelectorAll('.skill-item');
+    const galleryItems = document.querySelectorAll('.gallery-item');
     
-    photoGalleryScene = new THREE.Scene();
-    photoGalleryCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    photoGalleryCamera.position.set(0, 0, 15);
-    
-    photoGalleryRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    photoGalleryRenderer.setSize(window.innerWidth, window.innerHeight);
-    container.appendChild(photoGalleryRenderer.domElement);
-    
-    const photoSunlight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
-    photoSunlight.position.set(0, 100, 50);
-    photoGalleryScene.add(photoSunlight);
-    
-    const photoShadowLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    photoShadowLight.position.set(50, 100, 50);
-    photoShadowLight.castShadow = true;
-    photoGalleryScene.add(photoShadowLight);
-    
-    createPhotoGallery();
-    
-    photoGalleryControls = new OrbitControls(photoGalleryCamera, photoGalleryRenderer.domElement);
-    photoGalleryControls.enableDamping = true;
-    photoGalleryControls.dampingFactor = 0.05;
-    
-    animateAboutGallery();
-}
-
-function createPhotoGallery() {
-    const photoData = [
-        { id: 'photo1', src: './images/1.jpg', desc: 'This is me 90% of the time, currently' },
-        { id: 'photo2', src: './images/2.jpg', desc: 'This picture captured my attention, I dont know why' },
-        { id: 'photo4', src: './images/4.jpg', desc: 'Gotta post this so the bros know I listen to Joe Rogan' },
-        { id: 'photo6', src: './images/6.jpg', desc: 'I walked along this river walk for 2 hours, it was magical!' },
-        { id: 'photo7', src: './images/7.jpg', desc: 'coffee makes me smile' },
-        { id: 'photo9', src: './images/9.jpg', desc: 'I stayed here and did nothing for 2 days, meditation mode activate.' },
-        { id: 'photo10', src: './images/10.jpg', desc: 'Morning ocean sunrise, this makes me feel sucessful somehow.' },
-        { id: 'photo11', src: './images/11.jpg', desc: 'The inside is boring, but the outside is BRUTAL!' },
-    ];
-    
-    const radius = 8;
-    photoData.forEach((photo, index) => {
-        const photoGroup = new THREE.Group();
-        const texture = new THREE.TextureLoader().load(
-            photo.src,
-            () => console.log(`Loaded ${photo.src}`),
-            undefined,
-            (err) => console.error(`Error loading ${photo.src}:`, err)
-        );
-        const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
-        const geometry = new THREE.PlaneGeometry(2, 2);
-        const photoMesh = new THREE.Mesh(geometry, material);
-        
-        photoGroup.add(photoMesh);
-        
-        const angle = (index / photoData.length) * Math.PI * 2;
-        const targetX = radius * Math.cos(angle);
-        const targetY = radius * Math.sin(angle) * 0.3;
-        const targetZ = radius * Math.sin(angle) * 0.8;
-        
-        photoGroup.position.set(targetX, targetY, targetZ);
-        photoGroup.lookAt(0, 0, 0);
-        photoGroup.userData = { 
-            id: photo.id, 
-            desc: photo.desc, 
-            index: index, 
-            originalPosition: new THREE.Vector3(targetX, targetY, targetZ), 
-            src: photo.src 
-        };
-        
-        photoMesh.material.opacity = 0;
-        photoMesh.material.transparent = true;
-        photoGalleryScene.add(photoGroup);
-        photoObjects.push(photoGroup);
-        
-        gsap.to(photoMesh.material, {
-            opacity: 1,
-            duration: 1,
-            delay: index * 0.2,
-            ease: 'power1.inOut'
-        });
+    // Reset any previous animations
+    gsap.set([aboutHeader, aboutText, aboutSkills, aboutGallery, ...skillItems, ...galleryItems], {
+        opacity: 0,
+        y: 20
     });
-}
-
-function animateAboutGallery() {
-    photoObjects.forEach((photo, index) => {
-        if (!photo.userData.expanded) {
-            photo.position.y += Math.sin(clock.getElapsedTime() * 2 + index) * 0.005;
-            photo.rotation.y += 0.002;
+    
+    // Animate header
+    gsap.to(aboutHeader, {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        ease: 'power2.out'
+    });
+    
+    // Animate text section
+    gsap.to(aboutText, {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        delay: 0.2,
+        ease: 'power2.out'
+    });
+    
+    // Animate skills section
+    gsap.to(aboutSkills, {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        delay: 0.4,
+        ease: 'power2.out',
+        onComplete: () => {
+            // Animate skill bars
+            skillItems.forEach((item, index) => {
+                const progress = item.querySelector('.skill-progress');
+                gsap.fromTo(progress, 
+                    { width: '0%' },
+                    { 
+                        width: progress.style.width,
+                        duration: 1,
+                        delay: 0.1 * index,
+                        ease: 'power2.out'
+                    }
+                );
+            });
         }
     });
     
-    photoGalleryControls.update();
-    photoGalleryRenderer.render(photoGalleryScene, photoGalleryCamera);
-    requestAnimationFrame(animateAboutGallery);
+    // Animate gallery section
+    gsap.to(aboutGallery, {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        delay: 0.6,
+        ease: 'power2.out',
+        onComplete: () => {
+            // Animate gallery items
+            galleryItems.forEach((item, index) => {
+                gsap.fromTo(item, 
+                    { opacity: 0, y: 20 },
+                    { 
+                        opacity: 1,
+                        y: 0,
+                        duration: 0.5,
+                        delay: 0.05 * index,
+                        ease: 'power2.out'
+                    }
+                );
+            });
+        }
+    });
+    
+    // Set up gallery item click handlers
+    setupGalleryItemHandlers();
+}
+
+function setupGalleryItemHandlers() {
+    const galleryItems = document.querySelectorAll('.gallery-item');
+    const modal = document.getElementById('photo-modal');
+    const modalImg = document.getElementById('modal-img');
+    const modalCaption = document.querySelector('.modal-caption');
+    const modalClose = document.querySelector('.modal-close');
+    
+    galleryItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const img = item.querySelector('img');
+            const desc = item.getAttribute('data-desc');
+            
+            modalImg.src = img.src;
+            modalCaption.textContent = desc;
+            
+            gsap.fromTo(modal, 
+                { display: 'block', opacity: 0 },
+                { opacity: 1, duration: 0.3, ease: 'power2.out' }
+            );
+            
+            gsap.fromTo(modalImg, 
+                { scale: 0.8, opacity: 0 },
+                { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out' }
+            );
+            
+            gsap.fromTo(modalCaption, 
+                { y: 20, opacity: 0 },
+                { y: 0, opacity: 1, duration: 0.5, delay: 0.2, ease: 'power2.out' }
+            );
+        });
+    });
+    
+    if (modalClose) {
+        modalClose.addEventListener('click', () => {
+            gsap.to(modal, {
+                opacity: 0,
+                duration: 0.3,
+                ease: 'power2.in',
+                onComplete: () => {
+                    modal.style.display = 'none';
+                }
+            });
+        });
+    }
 }
 
 function handleAboutGalleryClick(event) {
-    const raycaster = new THREE.Raycaster();
-    const pointer = new THREE.Vector2();
-    pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-    pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    
-    raycaster.setFromCamera(pointer, photoGalleryCamera);
-    const intersects = raycaster.intersectObjects(photoObjects, true);
-    
-    if (intersects.length > 0) {
-        const target = intersects[0].object.parent;
-        
-        if (expandedPhoto === target) {
-            closeExpandedPhoto();
-        } else {
-            if (expandedPhoto) {
-                closeExpandedPhoto(() => expandPhoto(target));
-            } else {
-                expandPhoto(target);
-            }
-        }
-    } else if (expandedPhoto) {
-        closeExpandedPhoto();
-    }
-}
-
-function expandPhoto(photo) {
-    expandedPhoto = photo;
-    photo.userData.expanded = true;
-    
-    gsap.to(photo.children[0].material, {
-        opacity: 0,
-        duration: 0.5,
-        ease: 'power1.inOut',
-        onComplete: () => photo.visible = false
-    });
-    
-    const imgElement = document.createElement('img');
-    imgElement.src = photo.userData.src;
-    imgElement.className = 'expanded-image';
-    pages.about.appendChild(imgElement);
-    
-    gsap.fromTo(imgElement, 
-        { opacity: 0 }, 
-        { opacity: 1, duration: 0.5, ease: 'power1.inOut' }
-    );
-    
-    const desc = document.createElement('div');
-    desc.className = 'photo-description';
-    desc.textContent = photo.userData.desc;
-    pages.about.appendChild(desc);
-    
-    gsap.fromTo(desc, 
-        { opacity: 0 }, 
-        { opacity: 1, duration: 0.5, ease: 'power1.inOut', delay: 0.2 }
-    );
-    
-    const closeBtn = document.createElement('div');
-    closeBtn.className = 'photo-close-btn';
-    closeBtn.textContent = '×';
-    closeBtn.onclick = closeExpandedPhoto;
-    pages.about.appendChild(closeBtn);
-    
-    gsap.from(closeBtn, { opacity: 0, duration: 0.5, ease: 'power1.inOut', delay: 0.3 });
-}
-
-function closeExpandedPhoto(callback) {
-    if (!expandedPhoto) return;
-    
-    const imgElement = document.querySelector('.expanded-image');
-    const desc = document.querySelector('.photo-description');
-    const closeBtn = document.querySelector('.photo-close-btn');
-    
-    gsap.to(imgElement, { 
-        opacity: 0, 
-        duration: 0.5, 
-        ease: 'power1.inOut', 
-        onComplete: () => imgElement.remove() 
-    });
-    
-    gsap.to(desc, { 
-        opacity: 0, 
-        duration: 0.5, 
-        ease: 'power1.inOut', 
-        onComplete: () => desc.remove() 
-    });
-    
-    gsap.to(closeBtn, { 
-        opacity: 0, 
-        duration: 0.5, 
-        ease: 'power1.inOut', 
-        onComplete: () => {
-            closeBtn.remove();
-            expandedPhoto.visible = true;
-            expandedPhoto.children[0].material.opacity = 0;
-            expandedPhoto.children[0].material.transparent = true;
-            gsap.to(expandedPhoto.children[0].material, {
-                opacity: 1,
-                duration: 0.5,
-                ease: 'power1.inOut'
-            });
-            
-            const tempExpanded = expandedPhoto;
-            expandedPhoto = null;
-            tempExpanded.userData.expanded = false;
-            
-            if (callback) callback();
-        }
-    });
-}
-
-function cleanupAboutGallery() {
-    const container = document.getElementById('about-3d-container');
-    if (container && photoGalleryRenderer) {
-        container.removeChild(photoGalleryRenderer.domElement);
-    }
-    
-    const expandedImg = document.querySelector('.expanded-image');
-    if (expandedImg) expandedImg.remove();
-    const desc = document.querySelector('.photo-description');
-    if (desc) desc.remove();
-    const closeBtn = document.querySelector('.photo-close-btn');
-    if (closeBtn) closeBtn.remove();
-    
-    photoObjects.forEach(obj => {
-        obj.traverse(child => {
-            if (child.geometry) child.geometry.dispose();
-            if (child.material) {
-                if (child.material.map) child.material.map.dispose();
-                child.material.dispose();
-            }
-        });
-    });
-    
-    photoObjects = [];
-    photoGalleryScene = null;
-    photoGalleryCamera = null;
-    photoGalleryRenderer = null;
-    photoGalleryControls = null;
+    // This is now handled by the setupGalleryItemHandlers function
+    // for the 2D gallery implementation
 }
 
 // ===== 3D Contact Page Implementation =====
@@ -1130,52 +991,73 @@ function initContactGallery() {
 }
 
 function createContactIcons() {
+    contactObjects.forEach(obj => contactGalleryScene.remove(obj));
+    contactObjects = [];
+    
     const radius = 5;
+    const totalContacts = contactData.length;
+    
     contactData.forEach((contact, index) => {
         const contactGroup = new THREE.Group();
-        const texture = new THREE.TextureLoader().load(
-            contact.src,
-            () => console.log(`Loaded ${contact.src}`),
-            undefined,
-            (err) => console.error(`Error loading ${contact.src}:`, err)
-        );
-        const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, side: THREE.DoubleSide });
+        const texture = new THREE.TextureLoader().load(contact.src);
+        const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
         const geometry = new THREE.PlaneGeometry(2, 2);
-        const iconMesh = new THREE.Mesh(geometry, material);
+        const contactMesh = new THREE.Mesh(geometry, material);
         
-        contactGroup.add(iconMesh);
+        contactGroup.add(contactMesh);
         
-        const angle = (index / contactData.length) * Math.PI * 2;
-        const targetX = radius * Math.cos(angle);
-        const targetY = radius * Math.sin(angle) * 0.3;
-        const targetZ = radius * Math.sin(angle) * 0.8;
+        const angle = (index / totalContacts) * Math.PI * 2;
+        contactGroup.position.x = radius * Math.cos(angle);
+        contactGroup.position.y = radius * Math.sin(angle);
+        contactGroup.position.z = 0;
         
-        contactGroup.position.set(targetX, targetY, targetZ);
-        contactGroup.lookAt(0, 0, 0);
+        contactGroup.lookAt(0, 0, 5);
+        
         contactGroup.userData = { 
             id: contact.id, 
             url: contact.url, 
-            label: contact.label,
-            originalPosition: new THREE.Vector3(targetX, targetY, targetZ)
+            label: contact.label 
         };
         
-        iconMesh.material.opacity = 0;
         contactGalleryScene.add(contactGroup);
         contactObjects.push(contactGroup);
         
-        gsap.to(iconMesh.material, {
-            opacity: 1,
-            duration: 1,
-            delay: index * 0.2,
-            ease: 'power1.inOut'
-        });
+        // Create label
+        const labelDiv = document.createElement('div');
+        labelDiv.className = 'contact-icon-label';
+        labelDiv.textContent = contact.label;
+        labelDiv.id = `label-${contact.id}`;
+        document.body.appendChild(labelDiv);
+        
+        gsap.fromTo(contactGroup.scale, 
+            { x: 0, y: 0, z: 0 },
+            { 
+                x: 1, y: 1, z: 1,
+                duration: 0.8,
+                delay: index * 0.2,
+                ease: 'back.out(1.7)'
+            }
+        );
     });
 }
 
 function animateContactGallery() {
     contactObjects.forEach((contact, index) => {
-        contact.rotation.y += 0.02;
-        contact.position.y += Math.sin(clock.getElapsedTime() * 2 + index) * 0.005;
+        contact.rotation.z += 0.005;
+        contact.position.y += Math.sin(clock.getElapsedTime() * 2 + index) * 0.01;
+        
+        // Update label position
+        const labelDiv = document.getElementById(`label-${contact.userData.id}`);
+        if (labelDiv) {
+            const vector = new THREE.Vector3();
+            vector.setFromMatrixPosition(contact.matrixWorld);
+            vector.project(contactGalleryCamera);
+            
+            const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+            const y = (vector.y * -0.5 + 0.5) * window.innerHeight;
+            
+            labelDiv.style.transform = `translate(-50%, 20px) translate(${x}px,${y}px)`;
+        }
     });
     
     contactGalleryControls.update();
@@ -1190,10 +1072,14 @@ function handleContactGalleryHover(event) {
     contactRaycaster.setFromCamera(contactPointer, contactGalleryCamera);
     const intersects = contactRaycaster.intersectObjects(contactObjects, true);
     
-    if (hoveredContact && (!intersects.length || intersects[0].object.parent !== hoveredContact)) {
+    if (hoveredContact && (!intersects.length || !isChildOfObject(intersects[0].object, hoveredContact))) {
         gsap.to(hoveredContact.scale, { x: 1, y: 1, z: 1, duration: 0.3 });
-        const label = document.getElementById(`label-${hoveredContact.userData.id}`);
-        if (label) label.style.opacity = '0';
+        
+        const labelDiv = document.getElementById(`label-${hoveredContact.userData.id}`);
+        if (labelDiv) {
+            gsap.to(labelDiv, { opacity: 0, duration: 0.3 });
+        }
+        
         hoveredContact = null;
         document.body.style.cursor = 'default';
     }
@@ -1203,26 +1089,13 @@ function handleContactGalleryHover(event) {
         if (newHovered !== hoveredContact) {
             hoveredContact = newHovered;
             gsap.to(hoveredContact.scale, { x: 1.2, y: 1.2, z: 1.2, duration: 0.3 });
-            document.body.style.cursor = 'pointer';
             
-            let label = document.getElementById(`label-${hoveredContact.userData.id}`);
-            if (!label) {
-                label = document.createElement('div');
-                label.id = `label-${hoveredContact.userData.id}`;
-                label.className = 'contact-icon-label';
-                label.textContent = hoveredContact.userData.label;
-                document.getElementById('contacts-page').appendChild(label);
+            const labelDiv = document.getElementById(`label-${hoveredContact.userData.id}`);
+            if (labelDiv) {
+                gsap.to(labelDiv, { opacity: 1, duration: 0.3 });
             }
             
-            const rect = contactGalleryRenderer.domElement.getBoundingClientRect();
-            const vector = new THREE.Vector3();
-            hoveredContact.getWorldPosition(vector);
-            vector.project(contactGalleryCamera);
-            const x = (vector.x * 0.5 + 0.5) * rect.width + rect.left;
-            const y = (-vector.y * 0.5 + 0.5) * rect.height + rect.top;
-            label.style.left = `${x}px`;
-            label.style.top = `${y}px`;
-            label.style.opacity = '1';
+            document.body.style.cursor = 'pointer';
         }
     }
 }
@@ -1235,8 +1108,10 @@ function handleContactGalleryClick(event) {
     const intersects = contactRaycaster.intersectObjects(contactObjects, true);
     
     if (intersects.length > 0) {
-        const target = intersects[0].object.parent;
-        window.open(target.userData.url, '_blank');
+        const clickedContact = intersects[0].object.parent;
+        if (clickedContact.userData.url) {
+            window.open(clickedContact.userData.url, '_blank');
+        }
     }
 }
 
@@ -1245,6 +1120,11 @@ function cleanupContactGallery() {
     if (container && contactGalleryRenderer) {
         container.removeChild(contactGalleryRenderer.domElement);
     }
+    
+    contactData.forEach(contact => {
+        const labelDiv = document.getElementById(`label-${contact.id}`);
+        if (labelDiv) labelDiv.remove();
+    });
     
     contactObjects.forEach(obj => {
         obj.traverse(child => {
@@ -1255,8 +1135,6 @@ function cleanupContactGallery() {
             }
         });
     });
-    
-    document.querySelectorAll('.contact-icon-label').forEach(label => label.remove());
     
     contactObjects = [];
     contactGalleryScene = null;
