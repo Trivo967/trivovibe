@@ -452,6 +452,9 @@ function onClick(event) {
         }
 
         if (pages.landing && targetPage) {
+            // Push a new state to the history stack when navigating to a page
+            history.pushState({ page: 'content' }, '', window.location.pathname);
+            
             gsap.to(pages.landing, {
                 opacity: 0,
                 duration: 0.5,
@@ -469,20 +472,26 @@ function onClick(event) {
     }
 }
 
-// Browser back button functionality
+// Improved browser back button functionality
 window.addEventListener('popstate', (event) => {
+    // Always return to landing page regardless of navigation path
+    returnToLandingPage();
+});
+
+// Function to handle returning to landing page
+function returnToLandingPage() {
     // Find any active page
     const activePage = document.querySelector('.page[style*="display: block"]');
     
     if (activePage) {
+        // Clean up any active galleries
         if (activePage.id === 'projects-page') {
             cleanupVideoGallery();
-        } else if (activePage.id === 'about-page') {
-            // No cleanup needed for 2D About page
         } else if (activePage.id === 'contacts-page') {
             cleanupContactGallery();
         }
         
+        // Animate transition back to landing page
         gsap.to(activePage, {
             opacity: 0,
             y: 50,
@@ -500,7 +509,38 @@ window.addEventListener('popstate', (event) => {
             }
         });
     }
-});
+}
+
+// Add swipe detection for mobile devices
+let touchStartX = 0;
+let touchEndX = 0;
+
+// Set up touch event listeners
+document.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+}, false);
+
+document.addEventListener('touchend', (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
+}, false);
+
+// Handle swipe gesture
+function handleSwipe() {
+    // Detect right to left swipe (common back gesture on mobile)
+    if (touchEndX < touchStartX - 50) {
+        // Do nothing for right to left swipe (usually forward navigation)
+    }
+    // Detect left to right swipe (back gesture)
+    else if (touchEndX > touchStartX + 50) {
+        // Find any active page
+        const activePage = document.querySelector('.page[style*="display: block"]');
+        if (activePage) {
+            // If we're on a content page, return to landing
+            returnToLandingPage();
+        }
+    }
+}
 
 // ===== 3D Video Gallery Implementation =====
 let videoGalleryRenderer, videoGalleryControls;
