@@ -105,10 +105,11 @@ body {
     color: #f72585;
 }
 
-.back-btn {
+/* Back Button Styling */
+.back-button {
     position: absolute;
-    bottom: 30px;
-    left: 30px;
+    top: 20px;
+    left: 20px;
     padding: 10px 20px;
     font-size: 1em;
     background: #4cc9f0;
@@ -118,9 +119,10 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     z-index: 10;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.back-btn:hover {
+.back-button:hover {
     background: #f72585;
     transform: scale(1.05);
 }
@@ -133,6 +135,7 @@ body {
     padding: 20px 0;
     box-sizing: border-box;
     z-index: 5;
+    margin-left: 50px;
 }
 
 /* 3D Projects Gallery */
@@ -259,6 +262,8 @@ body {
         width: 100%;
         position: relative;
         padding: 10px;
+        margin-left: 0;
+        margin-top: 30px;
     }
     
     #video-player {
@@ -314,11 +319,13 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 40px 20px;
+    margin-top: 20px;
 }
 
 .about-header {
     text-align: center;
     margin-bottom: 40px;
+    margin-top: 20px;
 }
 
 .about-header h1 {
@@ -512,5 +519,12 @@ body {
     
     .modal-caption {
         width: 95%;
+    }
+    
+    .back-button {
+        top: 10px;
+        left: 10px;
+        padding: 8px 15px;
+        font-size: 0.9em;
     }
 }
