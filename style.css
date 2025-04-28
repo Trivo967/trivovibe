@@ -1,7 +1,7 @@
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background-color: #f0f0f0;
+    background-color: #F5F5DC; /* Beige for beach sand vibe */
     overflow: hidden;
 }
 
@@ -70,12 +70,12 @@ body {
     left: 0;
     width: 100%;
     height: 100vh;
-    background: #0f0f1a;
+    background: #E6F2FF; /* Light blue for beach sky/water vibe */
     padding: 20px;
     box-sizing: border-box;
     z-index: 1000;
     opacity: 0;
-    color: white;
+    color: #333; /* Darker text for better readability on light background */
     overflow-y: auto;
 }
 
@@ -86,17 +86,17 @@ body {
 .page h1 {
     font-size: 2.5em;
     margin: 20px 0;
-    color: #fff;
+    color: #0a0a0a;
     text-shadow: 0 0 10px rgba(76, 201, 240, 0.6);
 }
 
 .page p {
     font-size: 1.2em;
-    color: #ccc;
+    color: #000000;
 }
 
 .page a {
-    color: #4cc9f0;
+    color: #000000;
     text-decoration: none;
 }
 
@@ -331,7 +331,7 @@ body {
 .about-header h1 {
     font-size: 3em;
     margin-bottom: 10px;
-    color: #4cc9f0;
+    color: #050505;
     text-shadow: 0 0 15px rgba(76, 201, 240, 0.4);
 }
 
@@ -342,10 +342,11 @@ body {
 }
 
 .about-text {
-    background: rgba(26, 26, 46, 0.6);
+    background: #FFF8DC; /* Cornsilk - light sandy color */
     padding: 30px;
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    color: #333; /* Darker text for better readability */
 }
 
 .about-text p {
@@ -355,14 +356,15 @@ body {
 }
 
 .about-skills {
-    background: rgba(26, 26, 46, 0.6);
+    background: #FAF0E6; /* Linen - another light sandy color */
     padding: 30px;
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    color: #333; /* Darker text */
 }
 
 .about-skills h2 {
-    color: #4cc9f0;
+    color: #000000;
     margin-bottom: 25px;
     font-size: 1.8em;
     text-align: center;
@@ -400,14 +402,15 @@ body {
 }
 
 .about-gallery-2d {
-    background: rgba(26, 26, 46, 0.6);
+    background: #ADD8E6; /* Light Blue - complementing the page background */
     padding: 30px;
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    color: #333; /* Darker text */
 }
 
 .about-gallery-2d h2 {
-    color: #4cc9f0;
+    color: #000000;
     margin-bottom: 25px;
     font-size: 1.8em;
     text-align: center;

@@ -224,7 +224,7 @@ loader.load(
                 child.receiveShadow = false; // Meshes don't need to receive shadows unless desired
                 if (child.name === 'projects' || child.name === 'contacts' || child.name === 'about') {
                     textModels[child.name] = { mesh: child };
-                    child.scale.set(0.5, 0.5, 0.5);
+                    child.scale.set(1.0, 1.0, 1.0);
                 }
             }
         });
@@ -279,6 +279,18 @@ controls.target.set(2, 2, 2);
 controls.minDistance = 10;
 controls.maxDistance = 2000;
 controls.enabled = false;
+
+// Horizontal rotation limits (your setting)
+controls.minAzimuthAngle = -Math.PI / 2;
+controls.maxAzimuthAngle = Math.PI / 2;
+
+// Vertical rotation limits (new 45-degree setting)
+const centerPolarAngle = Math.PI / 2; // horizon
+const verticalLimit = 45 * (Math.PI / 180); // 45 degrees in radians
+
+controls.minPolarAngle = centerPolarAngle - verticalLimit / 2; 
+controls.maxPolarAngle = centerPolarAngle + verticalLimit / 2;
+
 controls.update();
 
 const renderer = new THREE.WebGLRenderer({ 
@@ -287,7 +299,7 @@ const renderer = new THREE.WebGLRenderer({
     powerPreference: 'high-performance' 
 });
 renderer.setSize(sizes.width, sizes.height);
-renderer.setClearColor(0x1a1a2e, 1);
+renderer.setClearColor(0xB0E0E6, 1); // Powder Blue for beach sky
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Soft shadows for natural look
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -375,7 +387,7 @@ function onMouseMove(event) {
 
     if (hoveredObject && (!intersects.length || intersects[0].object !== hoveredObject)) {
         gsap.to(hoveredObject.scale, { 
-            x: 0.5, y: 0.5, z: 0.5,
+            x: 1.0, y: 1.0, z: 1.0,
             duration: 0.3, 
             ease: 'power2.out' 
         });
